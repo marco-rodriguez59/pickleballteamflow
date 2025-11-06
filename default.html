@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Group Randomizer App</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .results {
+            margin-top: 30px;
+        }
+        
+        .round {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            background: #fff;
+        }
+        
+        .round h3 {
+            color: #007bff;
+            margin-top: 0;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 10px;
+        }
+        
+        .groups-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .group {
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #dee2e6;
+        }
+        
+        .group.regular {
+            background: #e3f2fd;
+            border-color: #2196f3;
+        }
+        
+        .group.bye {
+            background: #fff3e0;
+            border-color: #ff9800;
+        }
+        
+        .group h4 {
+            margin: 0 0 10px 0;
+            font-size: 16px;
+        }
+        
+        .group.regular h4 {
+            color: #1976d2;
+        }
+        
+        .group.bye h4 {
+            color: #f57c00;
+        }
+        
+        .group ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        
+        .group li {
+            margin-bottom: 5px;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center text-body">🎲 Group Randomizer App</h1>
+        
+        <div> <!--  <class="input-group mb-3"> -->
+            <div class="row">
+                <div class="col">
+                    <div class="form-floating">
+                        <textarea class="form-control auto-resize-textarea mb-3" placeholder="Alice&#10;Bob&#10;Charlie" id="peopleNames" style="height: 100px;"></textarea>
+                        <label for="peopleNames">People Names (one per line):</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col">
+                    <div class="form-floating">
+                        <input type="text" id="maxGroups" class="form-control mb-3" min="2" value="6" placeholder="Court(s)" aria-label="Court(s)">
+                        <label for="maxGroups">Court(s)</label>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-floating">
+                        <input type="text" id="numRounds" class="form-control mb-3" min="1" value="7" placeholder="Round(s)" aria-label="Round(s)">
+                        <label for="numRounds">Court(s)</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col">
+                    <button class="btn btn-secondary" onclick="clearResults()">🗑️ Clear Results</button>
+                </div>
+                <div class="col">
+                    <button class="btn btn-primary float-end" onclick="generateGroups()">🎲 Generate Random Groups</button>
+                </div>
+              </div>
+            </div>
+
+        <div id="message" class="mt-3"></div>
+        <div id="results" class="mt-5"></div>
+    </div>
+
+    <script>
+        // Global variables to track bye statistics
+        let byeTracker = {};
+        let allResults = [];
+
+        function showMessage(text, type = 'alert alert-danger') {
+            const messageDiv = document.getElementById('message');
+            messageDiv.innerHTML = `<div class="${type}">${text}</div>`;
+            setTimeout(() => {
+                messageDiv.innerHTML = '';
+            }, 5000);
+        }
+
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        function selectByeCandidates(people, numBye) {
+            if (numBye === 0) return [];
+            
+            const selected = [];
+            const available = [...people];
+            
+            // First, try to select people who have never been in bye (or have been least)
+            const minByeCount = Math.min(...people.map(person => byeTracker[person] || 0));
+            const leastByePeople = people.filter(person => (byeTracker[person] || 0) === minByeCount);
+            
+            // Randomly select from people with minimum bye count first
+            while (selected.length < numBye && leastByePeople.length > 0) {
+                const randomIndex = Math.floor(Math.random() * leastByePeople.length);
+                const selectedPerson = leastByePeople[randomIndex];
+                
+                selected.push(selectedPerson);
+                leastByePeople.splice(randomIndex, 1);
+                available.splice(available.indexOf(selectedPerson), 1);
+            }
+            
+            // If we still need more people, randomly select from remaining
+            while (selected.length < numBye && available.length > 0) {
+                const randomIndex = Math.floor(Math.random() * available.length);
+                const selectedPerson = available[randomIndex];
+                
+                selected.push(selectedPerson);
+                available.splice(randomIndex, 1);
+            }
+            
+            return selected;
+        }
+
+        function createGroups(people, maxGroups) {
+            const totalPeople = people.length;
+            const maxPeopleInGroups = maxGroups * 4;
+            
+            let peopleInGroups, byePeople;
+            
+            if (totalPeople <= maxPeopleInGroups) {
+                // We can fit everyone with some groups having less than 4 people
+                const numBye = totalPeople % 4;
+                const peopleForGroups = totalPeople - numBye;
+                
+                if (numBye > 0) {
+                    byePeople = selectByeCandidates(people, numBye);
+                    peopleInGroups = people.filter(person => !byePeople.includes(person));
+                } else {
+                    byePeople = [];
+                    peopleInGroups = [...people];
+                }
+            } else {
+                // We have more people than can fit in maxGroups
+                const numBye = totalPeople - maxPeopleInGroups;
+                byePeople = selectByeCandidates(people, numBye);
+                peopleInGroups = people.filter(person => !byePeople.includes(person));
+            }
+            
+            // Update bye tracker
+            byePeople.forEach(person => {
+                byeTracker[person] = (byeTracker[person] || 0) + 1;
+            });
+            
+            // Shuffle people going into groups
+            const shuffledPeople = shuffleArray(peopleInGroups);
+            
+            // Create groups of 4
+            const groups = [];
+            for (let i = 0; i < shuffledPeople.length; i += 4) {
+                groups.push(shuffledPeople.slice(i, i + 4));
+            }
+            
+            return { groups, byePeople };
+        }
+
+        function generateGroups() {
+            const peopleInput = document.getElementById('peopleNames').value.trim();
+            const maxGroups = parseInt(document.getElementById('maxGroups').value);
+            const numRounds = parseInt(document.getElementById('numRounds').value);
+            
+            // Validation
+            if (!peopleInput) {
+                showMessage('Please enter at least one person name.');
+                return;
+            }
+            
+            if (!maxGroups || maxGroups < 1) {
+                showMessage('Please enter a valid number of maximum groups (at least 1).');
+                return;
+            }
+            
+            if (!numRounds || numRounds < 1) {
+                showMessage('Please enter a valid number of rounds (at least 1).');
+                return;
+            }
+            
+            const people = peopleInput.split('\n')
+                .map(name => name.trim())
+                .filter(name => name.length > 0);
+            
+            if (people.length === 0) {
+                showMessage('Please enter valid names.');
+                return;
+            }
+            
+            // Check for duplicate names
+            const uniquePeople = [...new Set(people)];
+            if (uniquePeople.length !== people.length) {
+                showMessage('Warning: Duplicate names detected. Using unique names only.', 'alert alert-success');
+            }
+            
+            // Clear previous results and reset bye tracker
+            byeTracker = {};
+            allResults = [];
+            
+            // Initialize bye tracker
+            uniquePeople.forEach(person => {
+                byeTracker[person] = 0;
+            });
+            
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '';
+            
+            // Generate results for each round
+            for (let round = 1; round <= numRounds; round++) {
+                const result = createGroups(uniquePeople, maxGroups);
+                allResults.push(result);
+                
+                const roundDiv = document.createElement('div');
+                roundDiv.className = 'round';
+                roundDiv.innerHTML = `
+                    <h3>Round ${round}</h3>
+                    <div class="groups-container">
+                        ${result.groups.map((group, index) => `
+                            <div class="group regular">
+                                <h4>Group ${index + 1} (${group.length} people)</h4>
+                                <ul>
+                                    ${group.map(person => `<li>${person}</li>`).join('')}
+                                </ul>
+                            </div>
+                        `).join('')}
+                        ${result.byePeople.length > 0 ? `
+                            <div class="group bye">
+                                <h4>Bye Category (${result.byePeople.length} people)</h4>
+                                <ul>
+                                    ${result.byePeople.map(person => `<li>${person}</li>`).join('')}
+                                </ul>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+                resultsDiv.appendChild(roundDiv);
+            }
+            
+            // Show statistics
+            showMessage(`Successfully generated ${numRounds} rounds of randomized groups!`, 'alert alert-success');
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+            document.getElementById('message').innerHTML = '';
+            byeTracker = {};
+            allResults = [];
+            showMessage('Results cleared successfully!', 'alert alert-success');
+        }
+
+        // Add some sample data on page load for demo purposes
+        window.onload = function() {
+            //document.getElementById('peopleNames').value = 'Alice\nBob\nCharlie\nDiana\nEve\nFrank\nGrace\nHenry\nIvy\nJack\nKate\nLiam';
+        };
+    </script>
+</body>
+</html>
