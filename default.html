@@ -16,10 +16,6 @@
             background-color: #f5f5f5;
         }
 
-        .results {
-            margin-top: 30px;
-        }
-         
         .groups-container {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -65,6 +61,26 @@
             margin-bottom: 5px;
         }
 
+        .results {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            background: #fff;
+        }
+
+        :root{--sky:#0d6efd;--court:#0ea5e9;--grid:rgba(255,255,255,.3)}
+        body{background:#f8fafc}
+        .card-rounded{border-radius:1rem}
+        .court{width:100%; aspect-ratio:2/1; background:#0ea5e9; border-radius:1rem; color:#fff; position:relative; overflow:hidden}
+        .court .grid{position:absolute; inset:0; display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; gap:2px; background:var(--grid)}
+        .court .grid > div{background:#0ea5e9}
+        .court .center{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; text-align:center; padding:8px}
+        .team{display:flex; flex-direction:column; gap:.25rem; font-weight:600; max-width:40%}
+        .vs{font-weight:800; margin:0 .75rem}
+        .court-wrap{border:1px solid #e2e8f0; border-radius:.75rem; padding:.75rem}
+        .border-dashed{border-style:dashed!important}
+
     </style>
 </head>
 <body>
@@ -84,13 +100,13 @@
             <div class="row">
                 <div class="col">
                     <div class="form-floating">
-                        <input type="text" id="maxGroups" class="form-control mb-3" min="2" value="6" v-model="this.courtCount" placeholder="Court(s)" aria-label="Court(s)">
-                        <label for="maxGroups">Court(s)</label>
+                        <input type="text" id="courts" class="form-control mb-3" min="2" value="6" v-model="this.courtCount" placeholder="Court(s)" aria-label="Court(s)">
+                        <label for="courts">Court(s)</label>
                     </div>
                 </div>
                 <div class="col">
                     <div class="form-floating">
-                        <input type="text" id="numRounds" class="form-control mb-3" min="1" value="7" placeholder="Round(s)" aria-label="Round(s)">
+                        <input type="text" id="numRounds" class="form-control mb-3" min="1" value="7" v-model="this.roundCount" placeholder="Round(s)" aria-label="Round(s)">
                         <label for="numRounds">Round(s)</label>
                     </div>
                 </div>
@@ -98,10 +114,10 @@
 
             <div class="row">
                 <div class="col">
-                    <button class="btn btn-secondary" onclick="clearResults()">🗑️ Clear Results</button>
+                    <button class="btn btn-secondary" v-on:click="clearAll()">🗑️ Clear Results</button>
                 </div>
                 <div class="col">
-                    <button class="btn btn-primary float-end" onclick="generateGroups()">🎲 Generate Random Groups</button>
+                    <button class="btn btn-primary float-end" v-on:click="generate()">🎲 Generate Random Groups</button>
                 </div>
               </div>
             </div>
@@ -109,17 +125,100 @@
                 Capacity: {{ courtCount * 4 }} &middot; Active Players: {{ players.length }}
              </div>
         <div id="message" class="mt-3"></div>
-        <div id="results" class="mt-5"></div>
+        
+        <div class="mt-3 d-flex align-items-center gap-2">
+            <h2 class="h5 m-0">Court Assignments</h2>
+            <span v-if="schedule.length" class="small text-secondary">{{ schedule.length }} round{{ schedule.length===1?'':'s' }} generated</span>
+        </div>
+        <div class="row">
+            <div class="col">
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input small" type="checkbox" id="showNumbers" v-model="showNumbers">
+                    <label class="form-check-label small" for="showNumbers">Show player numbers</label>
+                </div>
+            </div>
+        </div>
+
+          <div v-if="!schedule.length" class="card card-rounded shadow-sm mt-2 p-4 text-center text-secondary border border-dashed">
+            Enter at least <strong>8 players</strong> and click <em>Generate</em> to see court assignments here.
+          </div>
+      
+          <div class="round" v-if="schedule.length > 0">
+                <div class="row">
+                    <div class="col-md-6" v-for="round in schedule" :key="round.index">
+                        <div class="card card-rounded shadow-sm"></div>
+                            <div class="card-body">
+                                <h3>Round {{ round.index }}</h3>
+                                <div class="groups-container" v-for="court in round.courts" :key="court.courtNumber" >
+                                    <div class="group regular">
+                                        <h4>Court {{ court.courtNumber }}</h4>
+                                        <div class="center">
+                                            <div class="team">
+                                                <span v-for="p in court.players.slice(0,2)" :key="p.id">{{ showNumbers?`(${p.id}) `:'' }}{{ p.name }}</span>
+                                            </div>
+                                            <div class="vs">VS</div>
+                                            <div class="team">
+                                                <span v-for="p in court.players.slice(2,4)" :key="p.id">{{ showNumbers?`(${p.id}) `:'' }}{{ p.name }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div v-if="round.courts.length < courtCount" class="alert alert-light border">
+                                        {{ courtCount - round.courts.length }} court(s) idle this round.
+                                    </div>
+                                </div>
+                                <div v-if="round.sitOut.length" class="group bye">
+                                    <h4>Sit Out</h4>
+                                    <div>{{ round.sitOut.map(p=>`${showNumbers?`(${p.id}) `:''}${p.name}`).join(', ') }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+          </div>
+        </div>
     </div>
 
     <script>
+        const PLAYERS_PER_COURT = 4;
+
+        function shuffle(arr, rng=Math.random){ const a=arr.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(rng()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+        function chunk(arr,size){ const out=[]; for(let i=0;i<arr.length;i+=size) out.push(arr.slice(i,i+size)); return out; }
+        function keyPair(a,b){ return a<b?`${a}-${b}`:`${b}-${a}` }
+        function pickPairing(playersOfFour, history){ const p=playersOfFour; const candidates=[ [[p[0],p[1]],[p[2],p[3]]], [[p[0],p[2]],[p[1],p[3]]], [[p[0],p[3]],[p[1],p[2]] ] ]; let best=candidates[0], scoreMin=Infinity; for(const cand of candidates){ const [[a,b],[c,d]]=cand; const score=(history.has(keyPair(a.id,b.id))?1:0)+(history.has(keyPair(c.id,d.id))?1:0); if(score<scoreMin){scoreMin=score; best=cand;} } return best; }
+
+        function buildRound(roster, roundIndex, selectedCourts, history){
+            
+            const total=roster.length;
+            const fullCourts=Math.min(selectedCourts, Math.floor(total/PLAYERS_PER_COURT));
+            const needed = fullCourts * PLAYERS_PER_COURT;
+            const sitCount=Math.max(0,total-needed);
+
+            let sitOut=[];
+            if(sitCount>0){ const byFair=shuffle(roster).sort((a,b)=>a.sitOuts-b.sitOuts); sitOut=byFair.slice(0,sitCount); }
+
+            const active=roster.filter(p=>!sitOut.some(s=>s.id===p.id));
+
+            let bestGroups=[]; let bestPenalty=Infinity;
+            for(let attempt=0;attempt<10;attempt++){
+                const groups=chunk(shuffle(active), PLAYERS_PER_COURT).slice(0,fullCourts);
+                let pen=0;
+                for(const g of groups){ if(g.length<4) continue; const [t1,t2]=pickPairing(g,history);
+                pen+=history.has(keyPair(t1[0].id,t1[1].id))?1:0;
+                pen+=history.has(keyPair(t2[0].id,t2[1].id))?1:0; }
+                if(pen<bestPenalty){ bestPenalty=pen; bestGroups=groups; if(pen===0) break; }
+        }
+
+        const courts=bestGroups.map((g,i)=>{ const [t1,t2]=pickPairing(g,history); history.add(keyPair(t1[0].id,t1[1].id)); history.add(keyPair(t2[0].id,t2[1].id)); return {courtNumber:i+1, players:g}; });
+        return { index:roundIndex, courts, sitOut };
+        }
         document.app = Vue.createApp({
           data() {
             return {
                 namesText: '',
                 courtCount: 2,
-                peopleCount: 0,
-                people: {}
+                showNumbers: true,
+                roundCount: 7,
+                schedule: [],
             }
           },
           computed: {
@@ -128,214 +227,61 @@
             }
           },
           methods: {
-            showMessageAlert(text, type = 'alert alert-danger') {
+            showMessage(text, type = 'alert alert-danger') {
                 const messageDiv = document.getElementById('message');
                 messageDiv.innerHTML = `<div class="${type}">${text}</div>`;
                 setTimeout(() => {
                     messageDiv.innerHTML = '';
                 }, 5000);
             },
+            generate(){
+                if (!this.players || this.players.length < 8 || this.players.length > 24) {
+                    this.showMessage('Please enter between 8 - 24 people names.');
+                    return;
+                }
+                
+                if (!this.courtCount || this.courtCount < 1) {
+                    this.showMessage('Please enter a valid number of maximum courts (at least 1).');
+                    return;
+                }
+                
+                if (!this.roundCount || this.roundCount < 1) {
+                    this.showMessage('Please enter a valid number of rounds (at least 1).');
+                    return;
+                }
+                
+                const people = this.namesText.split('\n')
+                    .map(name => name.trim())
+                    .filter(name => name.length > 0);
+                
+                if (people.length === 0) {
+                    this.showMessage('Please enter valid names.');
+                    return;
+                }
+
+                // Check for duplicate names
+                const uniquePeople = [...new Set(people)];
+                if (uniquePeople.length !== people.length) {
+                    this.showMessage('Warning: Duplicate names detected. Using unique names only.', 'alert alert-warning');
+                }
+                    const roster=this.players.map(p=>({...p}));
+                    const history=new Set();
+                    const rounds=[];
+                    for(let r=1; r <= this.roundCount; r++){
+                        const round=buildRound(roster, r, this.courtCount, history);
+                        round.sitOut.forEach(p=>{ const rp=roster.find(x=>x.id===p.id); if(rp) rp.sitOuts+=1; });
+                        rounds.push(round);
+
+                    this.showMessage(`Successfully generated ${this.roundCount} rounds of randomized groups!`, 'alert alert-success');
+                }
+                this.schedule = rounds;
+            },
+            clearAll(){ this.schedule=[]; },
             toggleShowDiv(){
                 this.showDiv = !this.showDiv;
             }
           }
         }).mount('#app')
       </script>
-
-    <script>
-        // Global variables to track bye statistics
-        let byeTracker = {};
-        let allResults = [];
-
-        function showMessage(text, type = 'alert alert-danger') {
-            const messageDiv = document.getElementById('message');
-            messageDiv.innerHTML = `<div class="${type}">${text}</div>`;
-            setTimeout(() => {
-                messageDiv.innerHTML = '';
-            }, 5000);
-        }
-
-        function shuffleArray(array) {
-            const shuffled = [...array];
-            for (let i = shuffled.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-            }
-            return shuffled;
-        }
-
-        function selectByeCandidates(people, numBye) {
-            if (numBye === 0) return [];
-            
-            const selected = [];
-            const available = [...people];
-            
-            // First, try to select people who have never been in bye (or have been least)
-            const minByeCount = Math.min(...people.map(person => byeTracker[person] || 0));
-            const leastByePeople = people.filter(person => (byeTracker[person] || 0) === minByeCount);
-            
-            // Randomly select from people with minimum bye count first
-            while (selected.length < numBye && leastByePeople.length > 0) {
-                const randomIndex = Math.floor(Math.random() * leastByePeople.length);
-                const selectedPerson = leastByePeople[randomIndex];
-                
-                selected.push(selectedPerson);
-                leastByePeople.splice(randomIndex, 1);
-                available.splice(available.indexOf(selectedPerson), 1);
-            }
-            
-            // If we still need more people, randomly select from remaining
-            while (selected.length < numBye && available.length > 0) {
-                const randomIndex = Math.floor(Math.random() * available.length);
-                const selectedPerson = available[randomIndex];
-                
-                selected.push(selectedPerson);
-                available.splice(randomIndex, 1);
-            }
-            
-            return selected;
-        }
-
-        function createGroups(people, maxGroups) {
-            const totalPeople = people.length;
-            const maxPeopleInGroups = maxGroups * 4;
-            
-            let peopleInGroups, byePeople;
-            
-            if (totalPeople <= maxPeopleInGroups) {
-                // We can fit everyone with some groups having less than 4 people
-                const numBye = totalPeople % 4;
-                const peopleForGroups = totalPeople - numBye;
-                
-                if (numBye > 0) {
-                    byePeople = selectByeCandidates(people, numBye);
-                    peopleInGroups = people.filter(person => !byePeople.includes(person));
-                } else {
-                    byePeople = [];
-                    peopleInGroups = [...people];
-                }
-            } else {
-                // We have more people than can fit in maxGroups
-                const numBye = totalPeople - maxPeopleInGroups;
-                byePeople = selectByeCandidates(people, numBye);
-                peopleInGroups = people.filter(person => !byePeople.includes(person));
-            }
-            
-            // Update bye tracker
-            byePeople.forEach(person => {
-                byeTracker[person] = (byeTracker[person] || 0) + 1;
-            });
-            
-            // Shuffle people going into groups
-            const shuffledPeople = shuffleArray(peopleInGroups);
-            
-            // Create groups of 4
-            const groups = [];
-            for (let i = 0; i < shuffledPeople.length; i += 4) {
-                groups.push(shuffledPeople.slice(i, i + 4));
-            }
-            
-            return { groups, byePeople };
-        }
-
-        function generateGroups() {
-            const peopleInput = document.getElementById('peopleNames').value.trim();
-            const maxGroups = parseInt(document.getElementById('maxGroups').value);
-            const numRounds = parseInt(document.getElementById('numRounds').value);
-            
-            const peopleData = peopleInput.split('\n');
-            const peopleCount = peopleData.length;
-
-            // Validation
-            if (!peopleInput || peopleCount < 8 || peopleCount > 24) {
-                showMessage('Please enter between 8 - 24 people names.');
-                return;
-            }
-            
-            if (!maxGroups || maxGroups < 1) {
-                showMessage('Please enter a valid number of maximum courts (at least 1).');
-                return;
-            }
-            
-            if (!numRounds || numRounds < 1) {
-                showMessage('Please enter a valid number of rounds (at least 1).');
-                return;
-            }
-            
-            const people = peopleInput.split('\n')
-                .map(name => name.trim())
-                .filter(name => name.length > 0);
-            
-            if (people.length === 0) {
-                showMessage('Please enter valid names.');
-                return;
-            }
-            
-            // Check for duplicate names
-            const uniquePeople = [...new Set(people)];
-            if (uniquePeople.length !== people.length) {
-                showMessage('Warning: Duplicate names detected. Using unique names only.', 'alert alert-success');
-            }
-            
-            // Clear previous results and reset bye tracker
-            byeTracker = {};
-            allResults = [];
-            
-            // Initialize bye tracker
-            uniquePeople.forEach(person => {
-                byeTracker[person] = 0;
-            });
-            
-            const resultsDiv = document.getElementById('results');
-            resultsDiv.innerHTML = '';
-            
-            // Generate results for each round
-            for (let round = 1; round <= numRounds; round++) {
-                const result = createGroups(uniquePeople, maxGroups);
-                allResults.push(result);
-                
-                const roundDiv = document.createElement('div');
-                roundDiv.className = 'round';
-                roundDiv.innerHTML = `
-                    <h3>Round ${round}</h3>
-                    <div class="groups-container">
-                        ${result.groups.map((group, index) => `
-                            <div class="group regular">
-                                <h4>Group ${index + 1} (${group.length} people)</h4>
-                                <ul>
-                                    ${group.map(person => `<li>${person}</li>`).join('')}
-                                </ul>
-                            </div>
-                        `).join('')}
-                        ${result.byePeople.length > 0 ? `
-                            <div class="group bye">
-                                <h4>Bye Category (${result.byePeople.length} people)</h4>
-                                <ul>
-                                    ${result.byePeople.map(person => `<li>${person}</li>`).join('')}
-                                </ul>
-                            </div>
-                        ` : ''}
-                    </div>
-                `;
-                resultsDiv.appendChild(roundDiv);
-            }
-            
-            // Show statistics
-            showMessage(`Successfully generated ${numRounds} rounds of randomized groups!`, 'alert alert-success');
-        }
-
-        function clearResults() {
-            document.getElementById('results').innerHTML = '';
-            document.getElementById('message').innerHTML = '';
-            byeTracker = {};
-            allResults = [];
-            showMessage('Results cleared successfully!', 'alert alert-success');
-        }
-
-        // Add some sample data on page load for demo purposes
-        window.onload = function() {
-            //document.getElementById('peopleNames').value = 'Alice\nBob\nCharlie\nDiana\nEve\nFrank\nGrace\nHenry\nIvy\nJack\nKate\nLiam';
-        };
-    </script>
 </body>
 </html>
