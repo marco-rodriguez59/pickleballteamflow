@@ -15,29 +15,6 @@
             padding: 20px;
             background-color: #f5f5f5;
         }
-
-        .groups-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 15px;
-            margin-top: 15px;
-        }
-        
-        .group {
-            padding: 15px;
-            border-radius: 8px;
-            border: 2px solid #dee2e6;
-        }
-        
-        .group.regular {
-            background: #e3f2fd;
-            border-color: #2196f3;
-        }
-        
-        .group.bye {
-            background: #fff3e0;
-            border-color: #ff9800;
-        }
         
         .group h4 {
             margin: 0 0 10px 0;
@@ -68,18 +45,6 @@
             border-radius: 8px;
             background: #fff;
         }
-
-        :root{--sky:#0d6efd;--court:#0ea5e9;--grid:rgba(255,255,255,.3)}
-        body{background:#f8fafc}
-        .card-rounded{border-radius:1rem}
-        .court{width:100%; aspect-ratio:2/1; background:#0ea5e9; border-radius:1rem; color:#fff; position:relative; overflow:hidden}
-        .court .grid{position:absolute; inset:0; display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; gap:2px; background:var(--grid)}
-        .court .grid > div{background:#0ea5e9}
-        .court .center{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; text-align:center; padding:8px}
-        .team{display:flex; flex-direction:column; gap:.25rem; font-weight:600; max-width:40%}
-        .vs{font-weight:800; margin:0 .75rem}
-        .court-wrap{border:1px solid #e2e8f0; border-radius:.75rem; padding:.75rem}
-        .border-dashed{border-style:dashed!important}
 
     </style>
 </head>
@@ -177,7 +142,39 @@
                                 <div class="groups-container" v-for="court in round.courts" :key="court.courtNumber" >
                                     <div class="group regular">
                                         <h4>Court {{ court.courtNumber }}</h4>
-                                        <div class="center">
+
+                                        <div class="card text-bg-dark">
+                                            <img src="pickball_court.jpg" class="card-img" alt="pickball court" style="height: 140px">
+                                            <div class="card-body card-img-overlay">
+                                                <div class="row align-items-center" style="height: 110px">
+                                                    <div class="col-5">
+                                                        <div class="row">
+                                                            <div class="col-12 mb-4">
+                                                                {{ showNumbers?`(${court.players[0].id}) `:'' }}{{ court.players[0].name }}
+                                                            </div>
+                                                            <div class="col-12 mt-2">
+                                                                {{ showNumbers?`(${court.players[1].id}) `:'' }}{{ court.players[1].name }}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-2 text-center">
+                                                        VS
+                                                    </div>
+                                                    <div class="col-5">
+                                                        <div class="row">
+                                                            <div class="col-12 mb-4">
+                                                                {{ showNumbers?`(${court.players[2].id}) `:'' }}{{ court.players[2].name }}
+                                                            </div>
+                                                            <div class="col-12 mt-2">
+                                                                {{ showNumbers?`(${court.players[3].id}) `:'' }}{{ court.players[3].name }}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                          </div>
+
+                                        <!-- <div class="center">
                                             <div class="team">
                                                 <span v-for="p in court.players.slice(0,2)" :key="p.id">{{ showNumbers?`(${p.id}) `:'' }}{{ p.name }}</span>
                                             </div>
@@ -185,13 +182,14 @@
                                             <div class="team">
                                                 <span v-for="p in court.players.slice(2,4)" :key="p.id">{{ showNumbers?`(${p.id}) `:'' }}{{ p.name }}</span>
                                             </div>
-                                        </div>
-                                    </div>
-                                    <div v-if="round.courts.length < courtCount" class="alert alert-light border">
-                                        {{ courtCount - round.courts.length }} court(s) idle this round.
+                                        </div> -->
+
                                     </div>
                                 </div>
-                                <div v-if="round.sitOut.length" class="group bye">
+                                <div v-if="round.courts.length < courtCount" class="alert alert-light border mt-3">
+                                    {{ courtCount - round.courts.length }} court(s) idle this round.
+                                </div>
+                                <div v-if="round.sitOut.length" class="bg-warning-subtle mt-3">
                                     <h4>Sit Out</h4>
                                     <div>{{ round.sitOut.map(p=>`${showNumbers?`(${p.id}) `:''}${p.name}`).join(', ') }}</div>
                                 </div>
