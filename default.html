@@ -120,6 +120,7 @@
             <div class="row">
                 <div class="col">
                     <button class="btn btn-secondary" v-on:click="clearAll()">🗑️ Clear Results</button>
+                    <button v-if="schedule.length && hasOpenRounds" class="btn btn-warning ms-2" v-on:click="regenerateRemaining()">🔄 Regenerate Open Rounds</button>
                 </div>
                 <div class="col">
                     <button class="btn btn-primary float-end" v-on:click="generate()">🎲 Generate Random Groups</button>
@@ -270,6 +271,9 @@
           computed: {
             players(){
                 return this.namesText.split('\n').map(s=>s.trim()).filter(Boolean).map((name,i)=>({id:i+1,name,sitOuts:0}));
+            },
+            hasOpenRounds(){
+                return this.schedule.some(round => !round.closed);
             }
           },
           methods: {
@@ -328,6 +332,60 @@
             },
             toggleRoundClosed(round){
                 round.closed = !round.closed;
+            },
+            regenerateRemaining(){
+                if (!this.players || this.players.length < 8) {
+                    this.showMessage('Please enter at least 8 players to regenerate rounds.');
+                    return;
+                }
+                
+                // Build history from closed rounds
+                const history = new Set();
+                const roster = this.players.map(p => ({...p, sitOuts: 0}));
+                
+                this.schedule.forEach(round => {
+                    if (round.closed) {
+                        // Track partnerships from closed rounds
+                        round.courts.forEach(court => {
+                            if (court.players.length >= 4) {
+                                const ids = court.players.map(p => p.id);
+                                // Reconstruct the pairings
+                                const p = court.players;
+                                const [t1, t2] = pickPairing(p, new Set());
+                                history.add(keyPair(t1[0].id, t1[1].id));
+                                history.add(keyPair(t2[0].id, t2[1].id));
+                            }
+                        });
+                        // Track sit outs
+                        round.sitOut.forEach(p => {
+                            const rp = roster.find(x => x.id === p.id);
+                            if (rp) rp.sitOuts += 1;
+                        });
+                    }
+                });
+                
+                // Regenerate only open rounds
+                const newSchedule = [];
+                let roundIndex = 1;
+                
+                this.schedule.forEach(existingRound => {
+                    if (existingRound.closed) {
+                        // Keep closed rounds as-is
+                        newSchedule.push({...existingRound, index: roundIndex});
+                    } else {
+                        // Regenerate open rounds with current roster
+                        const newRound = buildRound(roster, roundIndex, this.courtCount, history);
+                        newRound.sitOut.forEach(p => {
+                            const rp = roster.find(x => x.id === p.id);
+                            if (rp) rp.sitOuts += 1;
+                        });
+                        newSchedule.push(newRound);
+                    }
+                    roundIndex++;
+                });
+                
+                this.schedule = newSchedule;
+                this.showMessage('Successfully regenerated open rounds with current roster!', 'alert alert-success');
             }
           }
         }).mount('#app')
