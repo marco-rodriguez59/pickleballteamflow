@@ -119,11 +119,11 @@
 
             <div class="row">
                 <div class="col">
-                    <button class="btn btn-secondary" v-on:click="clearAll()">🗑️ Clear Results</button>
-                    <button v-if="schedule.length && hasOpenRounds" class="btn btn-warning ms-2" v-on:click="regenerateRemaining()">🔄 Regenerate Open Rounds</button>
+                    <button class="btn btn-secondary mt-2" v-on:click="clearAll()">🗑️ Clear Results</button>
+                    <button v-if="schedule.length && hasOpenRounds" class="btn btn-warning ms-2 mt-2" v-on:click="regenerateRemaining()">🔄 Regenerate Open Rounds</button>
                 </div>
                 <div class="col">
-                    <button class="btn btn-primary float-end" v-on:click="generate()">🎲 Generate Random Groups</button>
+                    <button class="btn btn-primary float-end mt-2" v-on:click="generate()">🎲 Generate Random Groups</button>
                 </div>
               </div>
             </div>
@@ -151,7 +151,7 @@
       
           <div class="round" v-if="schedule.length > 0">
                 <div class="row">
-                    <div class="col-md-6" v-for="round in schedule" :key="round.index">
+                    <div class="col-md-6" v-show="!round.closed" v-for="round in schedule" :key="round.index">
                         <div class="card card-rounded shadow-sm mb-3">
                             <div class="card-header round-header" :class="{closed: round.closed}">
                                 <div class="d-flex justify-content-between align-items-center">
@@ -165,7 +165,7 @@
                                     </button>
                                 </div>
                             </div>
-                            <div :id="'round-' + round.index" class="collapse show">
+                            <div :id="'round-' + round.index" class="collapse" :class="{show: !round.closed}">
                                 <div class="card-body">
                                     <div class="groups-container" v-for="court in round.courts" :key="court.courtNumber" >
                                     <div class="group regular">
