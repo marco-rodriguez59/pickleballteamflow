@@ -46,6 +46,21 @@
             background: #fff;
         }
 
+        .round-header h3::after {
+            content: " ✓";
+            color: #28a745;
+            font-weight: bold;
+            display: none;
+        }
+
+        .round-header.closed h3::after {
+            display: inline;
+        }
+
+        .btn-close-round {
+            font-size: 0.875rem;
+        }
+
     </style>
 </head>
 <body>
@@ -136,17 +151,34 @@
           <div class="round" v-if="schedule.length > 0">
                 <div class="row">
                     <div class="col-md-6" v-for="round in schedule" :key="round.index">
-                        <div class="card card-rounded shadow-sm"></div>
-                            <div class="card-body">
-                                <h3>Round {{ round.index }}</h3>
-                                <div class="groups-container" v-for="court in round.courts" :key="court.courtNumber" >
+                        <div class="card card-rounded shadow-sm mb-3">
+                            <div class="card-header round-header" :class="{closed: round.closed}">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h3 class="m-0">Round {{ round.index }}</h3>
+                                    <button class="btn btn-sm btn-close-round" 
+                                            :class="round.closed ? 'btn-outline-secondary' : 'btn-success'"
+                                            :data-bs-toggle="'collapse'"
+                                            :data-bs-target="'#round-' + round.index"
+                                            @click="toggleRoundClosed(round)">
+                                        {{ round.closed ? '↻ Reopen' : '✓ Close' }}
+                                    </button>
+                                </div>
+                            </div>
+                            <div :id="'round-' + round.index" class="collapse show">
+                                <div class="card-body">
+                                    <div class="groups-container" v-for="court in round.courts" :key="court.courtNumber" >
                                     <div class="group regular">
                                         <h4>Court {{ court.courtNumber }}</h4>
 
-                                        <div class="card text-bg-dark">
-                                            <img src="pickball_court.jpg" class="card-img" alt="pickball court" style="height: 140px">
-                                            <div class="card-body card-img-overlay">
-                                                <div class="row align-items-center" style="height: 110px">
+                                        <div class="card">
+                                            <!-- <img src="pickball_court.jpg" class="card-img" alt="pickball court" style="height: 140px"> -->
+                                            <div class="card-body">
+                                                <div v-for="player in court.players" :key="court.players.id">
+                                                    <ul>
+                                                        {{ showNumbers?`(${player.id}) `:'' }}{{ player.name }}
+                                                    </ul>
+                                                </div>
+                                                <!-- <div class="row align-items-center" style="height: 110px">
                                                     <div class="col-5">
                                                         <div class="row">
                                                             <div class="col-12 mb-4">
@@ -170,7 +202,8 @@
                                                             </div>
                                                         </div>
                                                     </div>
-                                                </div>
+                                                </div> -->
+
                                             </div>
                                           </div>
                                     </div>
@@ -181,6 +214,7 @@
                                 <div v-if="round.sitOut.length" class="bg-warning-subtle mt-3">
                                     <h4>Sit Out</h4>
                                     <div>{{ round.sitOut.map(p=>`${showNumbers?`(${p.id}) `:''}${p.name}`).join(', ') }}</div>
+                                </div>
                                 </div>
                             </div>
                         </div>
@@ -221,7 +255,7 @@
         }
 
         const courts=bestGroups.map((g,i)=>{ const [t1,t2]=pickPairing(g,history); history.add(keyPair(t1[0].id,t1[1].id)); history.add(keyPair(t2[0].id,t2[1].id)); return {courtNumber:i+1, players:g}; });
-        return { index:roundIndex, courts, sitOut };
+        return { index:roundIndex, courts, sitOut, closed: false };
         }
         document.app = Vue.createApp({
           data() {
@@ -291,6 +325,9 @@
             clearAll(){ this.schedule=[]; },
             toggleShowDiv(){
                 this.showDiv = !this.showDiv;
+            },
+            toggleRoundClosed(round){
+                round.closed = !round.closed;
             }
           }
         }).mount('#app')
