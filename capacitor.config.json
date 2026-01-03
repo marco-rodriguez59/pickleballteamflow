@@ -1,0 +1,9 @@
+{
+  "appId": "com.pickleballteamflow.app",
+  "appName": "Pickleball Team Flow",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  }
+}

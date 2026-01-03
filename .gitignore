@@ -1,0 +1,30 @@
+# Capacitor
+android/
+ios/
+www/
+
+# Dependencies
+node_modules/
+
+# Build files
+*.apk
+*.aab
+*.ipa
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Certificates (keep these secure!)
+*.pem
+*.jks
+*.keystore
+
+# Temporary conversion script
+convert-icons.js
