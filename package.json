@@ -3,12 +3,15 @@
   "version": "1.0.0",
   "description": "Group randomizer app for pickleball court assignments",
   "scripts": {
-    "copy": "powershell -Command \"Copy-Item default.html www\\index.html -Force; Copy-Item manifest.json,service-worker.js,icon-*.png,pickball_court.jpg www\\ -Force\"",
+    "dev": "vite",
+    "build": "vite build && npm run copy",
+    "preview": "vite preview",
+    "copy": "powershell -Command \"Copy-Item manifest.json,service-worker.js,icon-*.png,pickball_court.jpg www\\ -Force\"",
     "android": "npx cap open android",
     "ios": "npx cap open ios",
-    "sync": "npm run copy && npx cap sync",
-    "build:android": "npm run copy && npx cap sync android",
-    "build:ios": "npm run copy && npx cap sync ios"
+    "sync": "npm run build && npx cap sync",
+    "build:android": "npm run build && npx cap sync android",
+    "build:ios": "npm run build && npx cap sync ios"
   },
   "dependencies": {
     "canvas": "^3.2.0"
@@ -17,6 +20,10 @@
     "@capacitor/android": "^8.0.0",
     "@capacitor/cli": "^8.0.0",
     "@capacitor/core": "^8.0.0",
-    "@capacitor/ios": "^8.0.0"
+    "@capacitor/ios": "^8.0.0",
+    "@vitejs/plugin-vue": "^6.0.3",
+    "vite": "^7.3.1",
+    "vue": "^3.5.26",
+    "vue-router": "^4.6.4"
   }
 }

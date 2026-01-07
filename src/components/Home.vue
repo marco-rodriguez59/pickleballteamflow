@@ -1,0 +1,288 @@
+<template>
+  <div>
+    <h1 class="text-center text-body mb-4">🎲 Group Randomizer App</h1>
+    
+    <div>
+      <div class="row">
+        <div class="col">
+          <div class="form-floating">
+            <textarea 
+              class="form-control auto-resize-textarea mb-3" 
+              v-model="namesText" 
+              placeholder="Alice&#10;Bob&#10;Charlie" 
+              id="peopleNames" 
+              style="height: 100px;"
+            ></textarea>
+            <label for="peopleNames">Roster</label>
+          </div>
+        </div>
+      </div>
+      
+      <div class="row">
+        <div class="col">
+          <div class="form-floating">
+            <select class="form-select form-control mb-3" id="courts" v-model="courtCount" aria-label="Court(s)">
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+              <option value="7">7</option>
+              <option value="8">8</option>
+              <option value="9">9</option>
+              <option value="10">10</option>
+              <option value="11">11</option>
+              <option value="12">12</option>
+            </select>
+            <label for="courts">Court(s)</label>
+          </div>
+        </div>
+        <div class="col">
+          <div class="form-floating">
+            <select class="form-select form-control mb-3" id="numRounds" v-model="roundCount" aria-label="Round(s)">
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+              <option value="7">7</option>
+              <option value="8">8</option>
+              <option value="9">9</option>
+              <option value="10">10</option>
+              <option value="11">11</option>
+              <option value="12">12</option>
+            </select>
+            <label for="numRounds">Round(s)</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col">
+          <button class="btn btn-secondary mt-2" @click="clearAll()">🗑️ Clear Results</button>
+          <button v-if="schedule.length && hasOpenRounds" class="btn btn-warning ms-2 mt-2" @click="regenerateRemaining()">
+            🔄 Regenerate Open Rounds
+          </button>
+        </div>
+        <div class="col">
+          <button class="btn btn-primary float-end mt-2" @click="generate()">🎲 Generate Random Groups</button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="small text-secondary mt-2">
+      Capacity: {{ courtCount * 4 }} &middot; Active Players: {{ players.length }}
+    </div>
+    
+    <div id="message" class="mt-3"></div>
+    
+    <div class="mt-3 d-flex align-items-center gap-2">
+      <h2 class="h5 m-0">Court Assignments</h2>
+      <span v-if="schedule.length" class="small text-secondary">
+        {{ schedule.length }} round{{ schedule.length===1?'':'s' }} generated
+      </span>
+    </div>
+    
+    <div class="row">
+      <div class="col">
+        <div class="form-check form-check-inline">
+          <input class="form-check-input small" type="checkbox" id="showNumbers" v-model="showNumbers">
+          <label class="form-check-label small" for="showNumbers">Show player numbers</label>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="!schedule.length" class="card card-rounded shadow-sm mt-2 p-4 text-center text-secondary border border-dashed">
+      Enter at least <strong>8 players</strong> and click <em>Generate</em> to see court assignments here.
+    </div>
+
+    <div class="round" v-if="schedule.length > 0">
+      <div class="row">
+        <div class="col-md-6" v-show="!round.closed" v-for="round in schedule" :key="round.index">
+          <div class="card card-rounded shadow-sm mb-3">
+            <div class="card-header round-header" :class="{closed: round.closed}">
+              <div class="d-flex justify-content-between align-items-center">
+                <h3 class="m-0">Round {{ round.index }}</h3>
+                <button 
+                  class="btn btn-sm btn-close-round" 
+                  :class="round.closed ? 'btn-outline-secondary' : 'btn-success'"
+                  data-bs-toggle="collapse"
+                  :data-bs-target="'#round-' + round.index"
+                  @click="toggleRoundClosed(round)"
+                >
+                  {{ round.closed ? '↻ Reopen' : '✓ Close' }}
+                </button>
+              </div>
+            </div>
+            <div :id="'round-' + round.index" class="collapse" :class="{show: !round.closed}">
+              <div class="card-body">
+                <div class="groups-container" v-for="court in round.courts" :key="court.courtNumber">
+                  <div class="group regular">
+                    <h4>Court {{ court.courtNumber }}</h4>
+                    <div class="card">
+                      <div class="card-body">
+                        <ul>
+                          <li v-for="player in court.players" :key="player.id">
+                            {{ showNumbers ? '(' + player.id + ') ' : '' }}{{ player.name }}
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div v-if="round.courts.length < courtCount" class="alert alert-light border mt-3">
+                  {{ courtCount - round.courts.length }} court(s) idle this round.
+                </div>
+                <div v-if="round.sitOut.length" class="bg-warning-subtle mt-3 p-3">
+                  <h4>Sit Out</h4>
+                  <div>
+                    <span v-for="(player, index) in round.sitOut" :key="player.id">
+                      {{ showNumbers ? '(' + player.id + ') ' : '' }}{{ player.name }}<span v-if="index < round.sitOut.length - 1">, </span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import { buildRound, keyPair, pickPairing } from '../utils.js';
+
+export default {
+  name: 'Home',
+  data() {
+    return {
+      namesText: '',
+      courtCount: 2,
+      showNumbers: true,
+      roundCount: 7,
+      schedule: [],
+    }
+  },
+  computed: {
+    players() {
+      return this.namesText
+        .split('\n')
+        .map(s => s.trim())
+        .filter(Boolean)
+        .map((name, i) => ({ id: i + 1, name, sitOuts: 0 }));
+    },
+    hasOpenRounds() {
+      return this.schedule.some(round => !round.closed);
+    }
+  },
+  methods: {
+    showMessage(text, type = 'alert alert-danger') {
+      const messageDiv = document.getElementById('message');
+      messageDiv.innerHTML = '<div class="' + type + '">' + text + '</div>';
+      setTimeout(() => {
+        messageDiv.innerHTML = '';
+      }, 5000);
+    },
+    generate() {
+      if (!this.players || this.players.length < 8 || this.players.length > 24) {
+        this.showMessage('Please enter between 8 - 24 people names.');
+        return;
+      }
+
+      if (!this.courtCount || this.courtCount < 1) {
+        this.showMessage('Please enter a valid number of maximum courts (at least 1).');
+        return;
+      }
+
+      if (!this.roundCount || this.roundCount < 1) {
+        this.showMessage('Please enter a valid number of rounds (at least 1).');
+        return;
+      }
+
+      const people = this.namesText.split('\n')
+        .map(name => name.trim())
+        .filter(name => name.length > 0);
+
+      if (people.length === 0) {
+        this.showMessage('Please enter valid names.');
+        return;
+      }
+
+      const uniquePeople = [...new Set(people)];
+      if (uniquePeople.length !== people.length) {
+        this.showMessage('Warning: Duplicate names detected. Using unique names only.', 'alert alert-warning');
+      }
+
+      const roster = this.players.map(p => ({ ...p }));
+      const history = new Set();
+      const rounds = [];
+
+      for (let r = 1; r <= this.roundCount; r++) {
+        const round = buildRound(roster, r, this.courtCount, history);
+        round.sitOut.forEach(p => {
+          const rp = roster.find(x => x.id === p.id);
+          if (rp) rp.sitOuts += 1;
+        });
+        rounds.push(round);
+      }
+
+      this.showMessage('Successfully generated ' + this.roundCount + ' rounds of randomized groups!', 'alert alert-success');
+      this.schedule = rounds;
+    },
+    clearAll() {
+      this.schedule = [];
+    },
+    toggleRoundClosed(round) {
+      round.closed = !round.closed;
+    },
+    regenerateRemaining() {
+      if (!this.players || this.players.length < 8) {
+        this.showMessage('Please enter at least 8 players to regenerate rounds.');
+        return;
+      }
+
+      const history = new Set();
+      const roster = this.players.map(p => ({ ...p, sitOuts: 0 }));
+
+      this.schedule.forEach(round => {
+        if (round.closed) {
+          round.courts.forEach(court => {
+            if (court.players.length >= 4) {
+              const p = court.players;
+              const [t1, t2] = pickPairing(p, new Set());
+              history.add(keyPair(t1[0].id, t1[1].id));
+              history.add(keyPair(t2[0].id, t2[1].id));
+            }
+          });
+          round.sitOut.forEach(p => {
+            const rp = roster.find(x => x.id === p.id);
+            if (rp) rp.sitOuts += 1;
+          });
+        }
+      });
+
+      const newSchedule = [];
+      let roundIndex = 1;
+
+      this.schedule.forEach(existingRound => {
+        if (existingRound.closed) {
+          newSchedule.push({ ...existingRound, index: roundIndex });
+        } else {
+          const newRound = buildRound(roster, roundIndex, this.courtCount, history);
+          newRound.sitOut.forEach(p => {
+            const rp = roster.find(x => x.id === p.id);
+            if (rp) rp.sitOuts += 1;
+          });
+          newSchedule.push(newRound);
+        }
+        roundIndex++;
+      });
+
+      this.schedule = newSchedule;
+      this.showMessage('Successfully regenerated open rounds with current roster!', 'alert alert-success');
+    }
+  }
+};
+</script>

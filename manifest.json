@@ -2,7 +2,7 @@
   "name": "Pickleball Team Flow",
   "short_name": "TeamFlow",
   "description": "Group randomizer app for pickleball court assignments",
-  "start_url": "./default.html",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#f5f5f5",
   "theme_color": "#1976d2",

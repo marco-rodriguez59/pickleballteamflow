@@ -1,14 +1,16 @@
-const CACHE_NAME = 'pickleball-teamflow-v1';
+const CACHE_NAME = 'pickleball-teamflow-v4';
 const urlsToCache = [
-  './default.html',
+  './index.html',
   './manifest.json',
   'https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css',
-  'https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js',
-  'https://cdn.jsdelivr.net/npm/vue@3.5.23/dist/vue.global.min.js'
+  'https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js'
 ];
 
 // Install service worker and cache assets
 self.addEventListener('install', event => {
+  // Skip waiting to activate new service worker immediately
+  self.skipWaiting();
+  
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
@@ -52,23 +54,29 @@ self.addEventListener('fetch', event => {
       })
       .catch(() => {
         // Return a custom offline page if available
-        return caches.match('./default.html');
+        return caches.match('./index.html');
       })
   );
 });
 
 // Clean up old caches
 self.addEventListener('activate', event => {
-  const cacheWhitelist = [CACHE_NAME];
+  // Claim clients immediately
   event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheWhitelist.indexOf(cacheName) === -1) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
+    Promise.all([
+      // Take control of all pages immediately
+      self.clients.claim(),
+      // Delete old caches
+      caches.keys().then(cacheNames => {
+        return Promise.all(
+          cacheNames.map(cacheName => {
+            if (cacheName !== CACHE_NAME) {
+              console.log('Deleting old cache:', cacheName);
+              return caches.delete(cacheName);
+            }
+          })
+        );
+      })
+    ])
   );
 });
