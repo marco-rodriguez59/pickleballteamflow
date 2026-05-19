@@ -11,72 +11,93 @@ export function shuffle(arr, rng = Math.random) {
     return a;
 }
 
-export function chunk(arr, size) {
-    const out = [];
-    for (let i = 0; i < arr.length; i += size) {
-        out.push(arr.slice(i, i + size));
-    }
-    return out;
-}
-
+// Order-independent pair key: keyPair(1,2) === keyPair(2,1) === "1-2"
 export function keyPair(a, b) {
     return a < b ? `${a}-${b}` : `${b}-${a}`;
 }
 
-// Create a unique key for a team matchup (team1 vs team2)
+// Order-independent matchup key: keyMatchup(t1,t2) === keyMatchup(t2,t1)
+// team1/team2 are arrays of player objects with .id
 export function keyMatchup(team1, team2) {
     const t1 = keyPair(team1[0].id, team1[1].id);
     const t2 = keyPair(team2[0].id, team2[1].id);
     return t1 < t2 ? `${t1}:${t2}` : `${t2}:${t1}`;
 }
 
-// Create a unique key for a court grouping (4 players on the same court)
-export function keyCourtGroup(players) {
-    const ids = players.map(p => p.id).sort((a, b) => a - b);
-    return ids.join('-');
-}
-
-export function pickPairing(playersOfFour, partnerHistory, opponentHistory, courtHistory) {
-    const p = playersOfFour;
-    const candidates = [
-        [[p[0], p[1]], [p[2], p[3]]],
-        [[p[0], p[2]], [p[1], p[3]]],
-        [[p[0], p[3]], [p[1], p[2]]]
-    ];
-    
-    let best = candidates[0];
-    let scoreMin = Infinity;
-    
-    for (const cand of candidates) {
-        const [team1, team2] = cand;
-        const [a, b] = team1;
-        const [c, d] = team2;
-        
-        // Calculate penalty score
-        let score = 0;
-        
-        // Heavy penalty for repeat partnerships (weight: 10)
-        if (partnerHistory.has(keyPair(a.id, b.id))) score += 10;
-        if (partnerHistory.has(keyPair(c.id, d.id))) score += 10;
-        
-        // Medium penalty for repeat opponent matchups (weight: 5)
-        if (opponentHistory.has(keyMatchup(team1, team2))) score += 5;
-        
-        // Light penalty for same court grouping (weight: 2)
-        if (courtHistory.has(keyCourtGroup(p))) score += 2;
-        
-        if (score < scoreMin) {
-            scoreMin = score;
-            best = cand;
+// Generate all C(n,2) unordered pairs from an array of players
+function allPairs(players) {
+    const pairs = [];
+    for (let i = 0; i < players.length; i++) {
+        for (let j = i + 1; j < players.length; j++) {
+            pairs.push([players[i], players[j]]);
         }
-        
-        // Perfect score - no repeats at all
-        if (score === 0) break;
     }
-    return best;
+    return pairs;
 }
 
-export function buildRound(roster, roundIndex, selectedCourts, partnerHistory, opponentHistory, courtHistory) {
+// One greedy attempt to fill numCourts courts from activePlayers.
+// Shuffles all C(n,2) pairs first (random tiebreak), then stable-sorts by ascending
+// partnership usage count so least-used pairs are always preferred.
+// team1 = first unassigned pair; team2 = lowest-penalty compatible pair (no shared
+// players, prefers unused partnership then unused matchup).
+function tryAssignCourts(activePlayers, numCourts, partnerCount, opponentCount) {
+    const pairs = shuffle(allPairs(activePlayers)).sort((a, b) =>
+        (partnerCount.get(keyPair(a[0].id, a[1].id)) || 0) -
+        (partnerCount.get(keyPair(b[0].id, b[1].id)) || 0)
+    );
+
+    const assigned = new Set();
+    const courts = [];
+
+    for (let c = 0; c < numCourts; c++) {
+        // team1: first unassigned pair (least partnership-count after sort)
+        let team1 = null;
+        for (const pair of pairs) {
+            if (!assigned.has(pair[0].id) && !assigned.has(pair[1].id)) {
+                team1 = pair;
+                break;
+            }
+        }
+        if (!team1) break;
+
+        // team2: no shared players with team1; lowest weighted penalty score
+        let team2 = null;
+        let bestScore = Infinity;
+        for (const pair of pairs) {
+            const [c, d] = pair;
+            if (assigned.has(c.id) || assigned.has(d.id)) continue;
+            if (c.id === team1[0].id || c.id === team1[1].id ||
+                d.id === team1[0].id || d.id === team1[1].id) continue;
+
+            const score =
+                (partnerCount.get(keyPair(c.id, d.id)) || 0) * 10 +
+                (opponentCount.get(keyMatchup(team1, pair)) || 0) * 5;
+
+            if (score < bestScore) {
+                bestScore = score;
+                team2 = pair;
+                if (score === 0) break;
+            }
+        }
+        if (!team2) break;
+
+        assigned.add(team1[0].id); assigned.add(team1[1].id);
+        assigned.add(team2[0].id); assigned.add(team2[1].id);
+        courts.push({ team1, team2 });
+    }
+
+    const totalPenalty = courts.reduce((sum, { team1, team2 }) =>
+        sum +
+        (partnerCount.get(keyPair(team1[0].id, team1[1].id)) || 0) * 10 +
+        (partnerCount.get(keyPair(team2[0].id, team2[1].id)) || 0) * 10 +
+        (opponentCount.get(keyMatchup(team1, team2)) || 0) * 5, 0);
+
+    return { courts, totalPenalty, filled: courts.length };
+}
+
+// partnerCount: Map<pairKey, number>  — how many times each pair have been partners
+// opponentCount: Map<matchupKey, number> — how many times each pair-vs-pair matchup has occurred
+export function buildRound(roster, roundIndex, selectedCourts, partnerCount, opponentCount) {
     const total = roster.length;
     const fullCourts = Math.min(selectedCourts, Math.floor(total / PLAYERS_PER_COURT));
     const needed = fullCourts * PLAYERS_PER_COURT;
@@ -90,42 +111,34 @@ export function buildRound(roster, roundIndex, selectedCourts, partnerHistory, o
 
     const active = roster.filter(p => !sitOut.some(s => s.id === p.id));
 
-    let bestGroups = [];
+    let bestResult = null;
     let bestPenalty = Infinity;
-    
-    // Increase attempts for better optimization  
-    for (let attempt = 0; attempt < 50; attempt++) {
-        const groups = chunk(shuffle(active), PLAYERS_PER_COURT).slice(0, fullCourts);
-        let pen = 0;
-        
-        for (const g of groups) {
-            if (g.length < 4) continue;
-            const [team1, team2] = pickPairing(g, partnerHistory, opponentHistory, courtHistory);
-            
-            // Calculate penalty
-            pen += partnerHistory.has(keyPair(team1[0].id, team1[1].id)) ? 10 : 0;
-            pen += partnerHistory.has(keyPair(team2[0].id, team2[1].id)) ? 10 : 0;
-            pen += opponentHistory.has(keyMatchup(team1, team2)) ? 5 : 0;
-            pen += courtHistory.has(keyCourtGroup(g)) ? 2 : 0;
-        }
-        
-        if (pen < bestPenalty) {
-            bestPenalty = pen;
-            bestGroups = groups;
-            if (pen === 0) break; // Perfect solution found
+
+    for (let attempt = 0; attempt < 100; attempt++) {
+        const result = tryAssignCourts(active, fullCourts, partnerCount, opponentCount);
+        if (result.filled === fullCourts && result.totalPenalty < bestPenalty) {
+            bestPenalty = result.totalPenalty;
+            bestResult = result;
+            if (bestPenalty === 0) break;
         }
     }
 
-    const courts = bestGroups.map((g, i) => {
-        const [team1, team2] = pickPairing(g, partnerHistory, opponentHistory, courtHistory);
-        
-        // Record all history
-        partnerHistory.add(keyPair(team1[0].id, team1[1].id));
-        partnerHistory.add(keyPair(team2[0].id, team2[1].id));
-        opponentHistory.add(keyMatchup(team1, team2));
-        courtHistory.add(keyCourtGroup(g));
-        
-        return { courtNumber: i + 1, players: g };
+    if (!bestResult) bestResult = { courts: [] };
+
+    const courts = bestResult.courts.map(({ team1, team2 }, i) => {
+        const pk1 = keyPair(team1[0].id, team1[1].id);
+        const pk2 = keyPair(team2[0].id, team2[1].id);
+        const mk = keyMatchup(team1, team2);
+        partnerCount.set(pk1, (partnerCount.get(pk1) || 0) + 1);
+        partnerCount.set(pk2, (partnerCount.get(pk2) || 0) + 1);
+        opponentCount.set(mk, (opponentCount.get(mk) || 0) + 1);
+
+        return {
+            courtNumber: i + 1,
+            players: [...team1, ...team2],
+            team1Ids: [team1[0].id, team1[1].id],
+            team2Ids: [team2[0].id, team2[1].id]
+        };
     });
 
     return { index: roundIndex, courts, sitOut, closed: false };

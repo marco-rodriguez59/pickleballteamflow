@@ -166,7 +166,7 @@
 </template>
 
 <script>
-import { buildRound, keyPair, keyMatchup, keyCourtGroup, pickPairing } from '../utils.js';
+import { buildRound, keyPair, keyMatchup } from '../utils.js';
 import { createWorker } from 'tesseract.js';
 
 export default {
@@ -276,13 +276,12 @@ export default {
       }
 
       const roster = this.players.map(p => ({ ...p }));
-      const partnerHistory = new Set();
-      const opponentHistory = new Set();
-      const courtHistory = new Set();
+      const partnerCount = new Map();
+      const opponentCount = new Map();
       const rounds = [];
 
       for (let r = 1; r <= this.roundCount; r++) {
-        const round = buildRound(roster, r, this.courtCount, partnerHistory, opponentHistory, courtHistory);
+        const round = buildRound(roster, r, this.courtCount, partnerCount, opponentCount);
         round.sitOut.forEach(p => {
           const rp = roster.find(x => x.id === p.id);
           if (rp) rp.sitOuts += 1;
@@ -305,21 +304,31 @@ export default {
         return;
       }
 
-      const partnerHistory = new Set();
-      const opponentHistory = new Set();
-      const courtHistory = new Set();
+      const partnerCount = new Map();
+      const opponentCount = new Map();
       const roster = this.players.map(p => ({ ...p, sitOuts: 0 }));
 
       this.schedule.forEach(round => {
         if (round.closed) {
           round.courts.forEach(court => {
             if (court.players.length >= 4) {
-              const p = court.players;
-              const [team1, team2] = pickPairing(p, new Set(), new Set(), new Set());
-              partnerHistory.add(keyPair(team1[0].id, team1[1].id));
-              partnerHistory.add(keyPair(team2[0].id, team2[1].id));
-              opponentHistory.add(keyMatchup(team1, team2));
-              courtHistory.add(keyCourtGroup(p));
+              if (court.team1Ids && court.team2Ids) {
+                const [a, b] = court.team1Ids;
+                const [c, d] = court.team2Ids;
+                const pk1 = keyPair(a, b), pk2 = keyPair(c, d);
+                partnerCount.set(pk1, (partnerCount.get(pk1) || 0) + 1);
+                partnerCount.set(pk2, (partnerCount.get(pk2) || 0) + 1);
+                // Build minimal player objects so keyMatchup can compute the key
+                const mk = keyMatchup([{id: a}, {id: b}], [{id: c}, {id: d}]);
+                opponentCount.set(mk, (opponentCount.get(mk) || 0) + 1);
+              } else {
+                // Fallback for old data without stored team IDs: record best-guess partnerships
+                const p = court.players;
+                const pk1 = keyPair(p[0].id, p[1].id);
+                const pk2 = keyPair(p[2].id, p[3].id);
+                partnerCount.set(pk1, (partnerCount.get(pk1) || 0) + 1);
+                partnerCount.set(pk2, (partnerCount.get(pk2) || 0) + 1);
+              }
             }
           });
           round.sitOut.forEach(p => {
@@ -336,7 +345,7 @@ export default {
         if (existingRound.closed) {
           newSchedule.push({ ...existingRound, index: roundIndex });
         } else {
-          const newRound = buildRound(roster, roundIndex, this.courtCount, partnerHistory, opponentHistory, courtHistory);
+          const newRound = buildRound(roster, roundIndex, this.courtCount, partnerCount, opponentCount);
           newRound.sitOut.forEach(p => {
             const rp = roster.find(x => x.id === p.id);
             if (rp) rp.sitOuts += 1;
