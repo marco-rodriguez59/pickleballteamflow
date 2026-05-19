@@ -278,10 +278,11 @@ export default {
       const roster = this.players.map(p => ({ ...p }));
       const partnerCount = new Map();
       const opponentCount = new Map();
+      const individualOpponentCount = new Map();
       const rounds = [];
 
       for (let r = 1; r <= this.roundCount; r++) {
-        const round = buildRound(roster, r, this.courtCount, partnerCount, opponentCount);
+        const round = buildRound(roster, r, this.courtCount, partnerCount, opponentCount, individualOpponentCount);
         round.sitOut.forEach(p => {
           const rp = roster.find(x => x.id === p.id);
           if (rp) rp.sitOuts += 1;
@@ -306,6 +307,7 @@ export default {
 
       const partnerCount = new Map();
       const opponentCount = new Map();
+      const individualOpponentCount = new Map();
       const roster = this.players.map(p => ({ ...p, sitOuts: 0 }));
 
       this.schedule.forEach(round => {
@@ -318,9 +320,12 @@ export default {
                 const pk1 = keyPair(a, b), pk2 = keyPair(c, d);
                 partnerCount.set(pk1, (partnerCount.get(pk1) || 0) + 1);
                 partnerCount.set(pk2, (partnerCount.get(pk2) || 0) + 1);
-                // Build minimal player objects so keyMatchup can compute the key
                 const mk = keyMatchup([{id: a}, {id: b}], [{id: c}, {id: d}]);
                 opponentCount.set(mk, (opponentCount.get(mk) || 0) + 1);
+                [[a,c],[a,d],[b,c],[b,d]].forEach(([x, y]) => {
+                  const ik = keyPair(x, y);
+                  individualOpponentCount.set(ik, (individualOpponentCount.get(ik) || 0) + 1);
+                });
               } else {
                 // Fallback for old data without stored team IDs: record best-guess partnerships
                 const p = court.players;
@@ -345,7 +350,7 @@ export default {
         if (existingRound.closed) {
           newSchedule.push({ ...existingRound, index: roundIndex });
         } else {
-          const newRound = buildRound(roster, roundIndex, this.courtCount, partnerCount, opponentCount);
+          const newRound = buildRound(roster, roundIndex, this.courtCount, partnerCount, opponentCount, individualOpponentCount);
           newRound.sitOut.forEach(p => {
             const rp = roster.find(x => x.id === p.id);
             if (rp) rp.sitOuts += 1;

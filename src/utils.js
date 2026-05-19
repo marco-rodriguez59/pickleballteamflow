@@ -40,7 +40,7 @@ function allPairs(players) {
 // partnership usage count so least-used pairs are always preferred.
 // team1 = first unassigned pair; team2 = lowest-penalty compatible pair (no shared
 // players, prefers unused partnership then unused matchup).
-function tryAssignCourts(activePlayers, numCourts, partnerCount, opponentCount) {
+function tryAssignCourts(activePlayers, numCourts, partnerCount, opponentCount, individualOpponentCount) {
     const pairs = shuffle(allPairs(activePlayers)).sort((a, b) =>
         (partnerCount.get(keyPair(a[0].id, a[1].id)) || 0) -
         (partnerCount.get(keyPair(b[0].id, b[1].id)) || 0)
@@ -71,7 +71,11 @@ function tryAssignCourts(activePlayers, numCourts, partnerCount, opponentCount) 
 
             const score =
                 (partnerCount.get(keyPair(c.id, d.id)) || 0) * 10 +
-                (opponentCount.get(keyMatchup(team1, pair)) || 0) * 5;
+                (opponentCount.get(keyMatchup(team1, pair)) || 0) * 5 +
+                ((individualOpponentCount.get(keyPair(team1[0].id, c.id)) || 0) +
+                 (individualOpponentCount.get(keyPair(team1[0].id, d.id)) || 0) +
+                 (individualOpponentCount.get(keyPair(team1[1].id, c.id)) || 0) +
+                 (individualOpponentCount.get(keyPair(team1[1].id, d.id)) || 0)) * 3;
 
             if (score < bestScore) {
                 bestScore = score;
@@ -97,7 +101,7 @@ function tryAssignCourts(activePlayers, numCourts, partnerCount, opponentCount) 
 
 // partnerCount: Map<pairKey, number>  — how many times each pair have been partners
 // opponentCount: Map<matchupKey, number> — how many times each pair-vs-pair matchup has occurred
-export function buildRound(roster, roundIndex, selectedCourts, partnerCount, opponentCount) {
+export function buildRound(roster, roundIndex, selectedCourts, partnerCount, opponentCount, individualOpponentCount) {
     const total = roster.length;
     const fullCourts = Math.min(selectedCourts, Math.floor(total / PLAYERS_PER_COURT));
     const needed = fullCourts * PLAYERS_PER_COURT;
@@ -127,7 +131,7 @@ export function buildRound(roster, roundIndex, selectedCourts, partnerCount, opp
     let bestPenalty = Infinity;
 
     for (let attempt = 0; attempt < 100; attempt++) {
-        const result = tryAssignCourts(active, fullCourts, partnerCount, opponentCount);
+        const result = tryAssignCourts(active, fullCourts, partnerCount, opponentCount, individualOpponentCount);
         if (result.filled === fullCourts && result.totalPenalty < bestPenalty) {
             bestPenalty = result.totalPenalty;
             bestResult = result;
@@ -144,6 +148,13 @@ export function buildRound(roster, roundIndex, selectedCourts, partnerCount, opp
         partnerCount.set(pk1, (partnerCount.get(pk1) || 0) + 1);
         partnerCount.set(pk2, (partnerCount.get(pk2) || 0) + 1);
         opponentCount.set(mk, (opponentCount.get(mk) || 0) + 1);
+
+        // Record individual cross-opponent encounters: each player on team1 faced each player on team2
+        [[team1[0], team2[0]], [team1[0], team2[1]],
+         [team1[1], team2[0]], [team1[1], team2[1]]].forEach(([x, y]) => {
+            const ik = keyPair(x.id, y.id);
+            individualOpponentCount.set(ik, (individualOpponentCount.get(ik) || 0) + 1);
+        });
 
         return {
             courtNumber: i + 1,

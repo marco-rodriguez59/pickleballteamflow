@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pickleball-teamflow-v6';
+const CACHE_NAME = 'pickleball-teamflow-v7';
 const urlsToCache = [
   './index.html',
   './manifest.json',
