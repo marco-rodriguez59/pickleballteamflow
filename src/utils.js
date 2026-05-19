@@ -105,8 +105,20 @@ export function buildRound(roster, roundIndex, selectedCourts, partnerCount, opp
 
     let sitOut = [];
     if (sitCount > 0) {
-        const byFair = shuffle(roster).sort((a, b) => a.sitOuts - b.sitOuts);
-        sitOut = byFair.slice(0, sitCount);
+        // Group players into tiers by sit-out count, shuffle within each tier,
+        // then fill from the lowest tier first. This guarantees no player sits out
+        // a second time while any player has not yet sat out at all (or fewer times).
+        const tierMap = new Map();
+        for (const p of roster) {
+            const bucket = tierMap.get(p.sitOuts) ?? [];
+            bucket.push(p);
+            tierMap.set(p.sitOuts, bucket);
+        }
+        const pool = [];
+        for (const key of [...tierMap.keys()].sort((a, b) => a - b)) {
+            pool.push(...shuffle(tierMap.get(key)));
+        }
+        sitOut = pool.slice(0, sitCount);
     }
 
     const active = roster.filter(p => !sitOut.some(s => s.id === p.id));
