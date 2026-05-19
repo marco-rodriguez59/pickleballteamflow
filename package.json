@@ -14,7 +14,8 @@
     "build:ios": "npm run build && npx cap sync ios"
   },
   "dependencies": {
-    "canvas": "^3.2.0"
+    "canvas": "^3.2.0",
+    "tesseract.js": "^7.0.0"
   },
   "devDependencies": {
     "@capacitor/android": "^8.0.0",

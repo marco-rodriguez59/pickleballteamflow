@@ -15,6 +15,20 @@
             ></textarea>
             <label for="peopleNames">Roster</label>
           </div>
+          <div class="mb-3">
+            <input 
+              type="file" 
+              ref="imageInput" 
+              @change="handleImageUpload" 
+              accept="image/*" 
+              capture="environment"
+              style="display: none;"
+            />
+            <button class="btn btn-outline-primary btn-sm" @click="$refs.imageInput.click()" :disabled="isProcessing">
+              📷 {{ isProcessing ? 'Processing...' : 'Scan Names from Photo' }}
+            </button>
+            <div v-if="ocrProgress" class="small text-secondary mt-1">{{ ocrProgress }}</div>
+          </div>
         </div>
       </div>
       
@@ -152,7 +166,8 @@
 </template>
 
 <script>
-import { buildRound, keyPair, pickPairing } from '../utils.js';
+import { buildRound, keyPair, keyMatchup, keyCourtGroup, pickPairing } from '../utils.js';
+import { createWorker } from 'tesseract.js';
 
 export default {
   name: 'Home',
@@ -163,6 +178,8 @@ export default {
       showNumbers: true,
       roundCount: 7,
       schedule: [],
+      isProcessing: false,
+      ocrProgress: '',
     }
   },
   computed: {
@@ -184,6 +201,49 @@ export default {
       setTimeout(() => {
         messageDiv.innerHTML = '';
       }, 5000);
+    },
+    async handleImageUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      this.isProcessing = true;
+      this.ocrProgress = 'Initializing OCR...';
+
+      try {
+        const worker = await createWorker('eng');
+        
+        this.ocrProgress = 'Processing image...';
+        const { data: { text } } = await worker.recognize(file);
+        console.log('OCR Result:', text);
+        await worker.terminate();
+
+        // Extract names (lines with text, clean up)
+        const extractedNames = text
+          .split('\n')
+          .map(line => line.trim())
+          .filter(line => line.length > 0 && line.length < 50) // Filter reasonable name lengths
+          .join('\n');
+
+        if (extractedNames) {
+          // Append to existing names or replace if empty
+          if (this.namesText.trim()) {
+            this.namesText += '\n' + extractedNames;
+          } else {
+            this.namesText = extractedNames;
+          }
+          this.showMessage(`Successfully extracted ${extractedNames.split('\n').length} names from image!`, 'alert alert-success');
+        } else {
+          this.showMessage('No text found in image. Please try a clearer photo.', 'alert alert-warning');
+        }
+      } catch (error) {
+        console.error('OCR Error:', error);
+        this.showMessage('Failed to process image. Please try again.', 'alert alert-danger');
+      } finally {
+        this.isProcessing = false;
+        this.ocrProgress = '';
+        // Reset file input
+        event.target.value = '';
+      }
     },
     generate() {
       if (!this.players || this.players.length < 8 || this.players.length > 24) {
@@ -216,11 +276,13 @@ export default {
       }
 
       const roster = this.players.map(p => ({ ...p }));
-      const history = new Set();
+      const partnerHistory = new Set();
+      const opponentHistory = new Set();
+      const courtHistory = new Set();
       const rounds = [];
 
       for (let r = 1; r <= this.roundCount; r++) {
-        const round = buildRound(roster, r, this.courtCount, history);
+        const round = buildRound(roster, r, this.courtCount, partnerHistory, opponentHistory, courtHistory);
         round.sitOut.forEach(p => {
           const rp = roster.find(x => x.id === p.id);
           if (rp) rp.sitOuts += 1;
@@ -243,7 +305,9 @@ export default {
         return;
       }
 
-      const history = new Set();
+      const partnerHistory = new Set();
+      const opponentHistory = new Set();
+      const courtHistory = new Set();
       const roster = this.players.map(p => ({ ...p, sitOuts: 0 }));
 
       this.schedule.forEach(round => {
@@ -251,9 +315,11 @@ export default {
           round.courts.forEach(court => {
             if (court.players.length >= 4) {
               const p = court.players;
-              const [t1, t2] = pickPairing(p, new Set());
-              history.add(keyPair(t1[0].id, t1[1].id));
-              history.add(keyPair(t2[0].id, t2[1].id));
+              const [team1, team2] = pickPairing(p, new Set(), new Set(), new Set());
+              partnerHistory.add(keyPair(team1[0].id, team1[1].id));
+              partnerHistory.add(keyPair(team2[0].id, team2[1].id));
+              opponentHistory.add(keyMatchup(team1, team2));
+              courtHistory.add(keyCourtGroup(p));
             }
           });
           round.sitOut.forEach(p => {
@@ -270,7 +336,7 @@ export default {
         if (existingRound.closed) {
           newSchedule.push({ ...existingRound, index: roundIndex });
         } else {
-          const newRound = buildRound(roster, roundIndex, this.courtCount, history);
+          const newRound = buildRound(roster, roundIndex, this.courtCount, partnerHistory, opponentHistory, courtHistory);
           newRound.sitOut.forEach(p => {
             const rp = roster.find(x => x.id === p.id);
             if (rp) rp.sitOuts += 1;
