@@ -137,8 +137,15 @@
                     <div class="card">
                       <div class="card-body">
                         <ul>
-                          <li v-for="player in court.players" :key="player.id">
+                          <li
+                            v-for="player in court.players"
+                            :key="player.id"
+                            :class="{ 'clickable-player': !round.closed && round.sitOut.length > 0 }"
+                            :title="!round.closed && round.sitOut.length > 0 ? 'Click to sub out ' + player.name : ''"
+                            @click="!round.closed && round.sitOut.length > 0 && openSubModal(round, court, player)"
+                          >
                             {{ showNumbers ? '(' + player.id + ') ' : '' }}{{ player.name }}
+                            <span v-if="!round.closed && round.sitOut.length > 0" class="sub-out-badge">↕</span>
                           </li>
                         </ul>
                       </div>
@@ -162,6 +169,28 @@
         </div>
       </div>
     </div>
+    <!-- Sub-out modal -->
+    <div v-if="subModal.show" class="sub-modal-overlay" @click.self="closeSubModal">
+      <div class="sub-modal-box shadow-lg">
+        <h5 class="mb-3">Sub Out Player</h5>
+        <p class="mb-3">
+          Select a <strong>Sit Out</strong> player to replace
+          <strong>{{ subModal.player?.name }}</strong> on Court {{ subModal.court?.courtNumber }}:
+        </p>
+        <ul class="list-group mb-3">
+          <li
+            v-for="p in subModal.round.sitOut"
+            :key="p.id"
+            class="list-group-item list-group-item-action"
+            style="cursor: pointer;"
+            @click="confirmSubstitution(p)"
+          >
+            {{ showNumbers ? '(' + p.id + ') ' : '' }}{{ p.name }}
+          </li>
+        </ul>
+        <button class="btn btn-secondary btn-sm" @click="closeSubModal">Cancel</button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -180,6 +209,7 @@ export default {
       schedule: [],
       isProcessing: false,
       ocrProgress: '',
+      subModal: { show: false, round: null, court: null, player: null },
     }
   },
   computed: {
@@ -302,6 +332,37 @@ export default {
     toggleRoundClosed(round) {
       round.closed = !round.closed;
     },
+    openSubModal(round, court, player) {
+      this.subModal = { show: true, round, court, player };
+    },
+    closeSubModal() {
+      this.subModal = { show: false, round: null, court: null, player: null };
+    },
+    confirmSubstitution(sitOutPlayer) {
+      const { round, court, player } = this.subModal;
+
+      // Swap player into sit-out and sit-out player onto court
+      const playerIdx = court.players.findIndex(p => p.id === player.id);
+      court.players.splice(playerIdx, 1, { ...sitOutPlayer });
+
+      // Keep team1Ids / team2Ids in sync
+      if (court.team1Ids) {
+        const t1idx = court.team1Ids.indexOf(player.id);
+        if (t1idx !== -1) court.team1Ids[t1idx] = sitOutPlayer.id;
+      }
+      if (court.team2Ids) {
+        const t2idx = court.team2Ids.indexOf(player.id);
+        if (t2idx !== -1) court.team2Ids[t2idx] = sitOutPlayer.id;
+      }
+
+      // Move sit-out player onto court, move active player to sit-out
+      const sitOutIdx = round.sitOut.findIndex(p => p.id === sitOutPlayer.id);
+      round.sitOut.splice(sitOutIdx, 1);
+      round.sitOut.push({ ...player });
+
+      this.closeSubModal();
+      this.showMessage(`${player.name} subbed out → ${sitOutPlayer.name} subbed in.`, 'alert alert-success');
+    },
     regenerateRemaining() {
       if (!this.players || this.players.length < 8) {
         this.showMessage('Please enter at least 8 players to regenerate rounds.');
@@ -375,3 +436,36 @@ export default {
   }
 };
 </script>
+
+<style scoped>
+.clickable-player {
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 2px 4px;
+  transition: background-color 0.15s;
+}
+.clickable-player:hover {
+  background-color: #fff3cd;
+}
+.sub-out-badge {
+  font-size: 0.7em;
+  color: #6c757d;
+  margin-left: 4px;
+}
+.sub-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+}
+.sub-modal-box {
+  background: #fff;
+  border-radius: 8px;
+  padding: 1.5rem;
+  max-width: 360px;
+  width: 90%;
+}
+</style>

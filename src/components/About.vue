@@ -4,7 +4,7 @@
     
     <div class="card shadow-sm">
       <div class="card-body p-4">
-        <h5 class="card-title">Version 2.6</h5>
+        <h5 class="card-title">Version 3.0</h5>
         <p class="text-muted mb-4">A smart group randomizer for pickleball court assignments</p>
         
         <h5 class="card-title mt-4">Development Team</h5>
@@ -32,6 +32,7 @@
         <h5 class="card-title mt-4">Features</h5>
         <ul class="mb-4">
           <li>Smart player rotation to minimize repeat partnerships</li>
+          <li>Sub-out functionality to replace players during rounds</li>
           <li>Fair distribution of sit-out periods</li>
           <li>Support for 2-12 courts and multiple rounds</li>
           <li>Real-time court assignment generation</li>
