@@ -4,7 +4,7 @@
     
     <div class="card shadow-sm">
       <div class="card-body p-4">
-        <h5 class="card-title">Version 2.3</h5>
+        <h5 class="card-title">Version 2.4</h5>
         <p class="text-muted mb-4">A smart group randomizer for pickleball court assignments</p>
         
         <h5 class="card-title mt-4">Development Team</h5>

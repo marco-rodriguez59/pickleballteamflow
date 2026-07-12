@@ -35,113 +35,105 @@ function allPairs(players) {
     return pairs;
 }
 
-// One greedy attempt to fill numCourts courts from activePlayers.
-// Shuffles all C(n,2) pairs first (random tiebreak), then stable-sorts by ascending
-// partnership usage count so least-used pairs are always preferred.
-// team1 = first unassigned pair; team2 = lowest-penalty compatible pair (no shared
-// players, prefers unused partnership then unused matchup).
-function tryAssignCourts(activePlayers, numCourts, partnerCount, opponentCount, individualOpponentCount) {
-    const pairs = shuffle(allPairs(activePlayers)).sort((a, b) =>
-        (partnerCount.get(keyPair(a[0].id, a[1].id)) || 0) -
-        (partnerCount.get(keyPair(b[0].id, b[1].id)) || 0)
-    );
+function chunk(array, size) {
+    const groups = [];
+    for (let i = 0; i < array.length; i += size) {
+        groups.push(array.slice(i, i + size));
+    }
+    return groups;
+}
 
-    const assigned = new Set();
-    const courts = [];
+function selectBestPairing(players, partnerCount, opponentCount, individualOpponentCount) {
+    const [a, b, c, d] = players;
+    const candidates = [
+        { team1: [a, b], team2: [c, d] },
+        { team1: [a, c], team2: [b, d] },
+        { team1: [a, d], team2: [b, c] }
+    ];
 
-    for (let c = 0; c < numCourts; c++) {
-        // team1: first unassigned pair (least partnership-count after sort)
-        let team1 = null;
-        for (const pair of pairs) {
-            if (!assigned.has(pair[0].id) && !assigned.has(pair[1].id)) {
-                team1 = pair;
-                break;
-            }
+    let best = candidates[0];
+    let lowestScore = Infinity;
+
+    for (const candidate of candidates) {
+        const pk1 = keyPair(candidate.team1[0].id, candidate.team1[1].id);
+        const pk2 = keyPair(candidate.team2[0].id, candidate.team2[1].id);
+        const mk = keyMatchup(candidate.team1, candidate.team2);
+
+        // Partner history: repeated partnerships are penalized
+        const partnerScore =
+            (partnerCount.get(pk1) || 0) * 10 +
+            (partnerCount.get(pk2) || 0) * 10;
+
+        // Opponent matchup history: repeated team matchups are heavily penalized
+        const opponentScore = (opponentCount.get(mk) || 0) * 15;
+
+        // Individual opponent history: each cross-team player pairing penalized by their encounter count
+        const individualScore =
+            ((individualOpponentCount.get(keyPair(candidate.team1[0].id, candidate.team2[0].id)) || 0) +
+             (individualOpponentCount.get(keyPair(candidate.team1[0].id, candidate.team2[1].id)) || 0) +
+             (individualOpponentCount.get(keyPair(candidate.team1[1].id, candidate.team2[0].id)) || 0) +
+             (individualOpponentCount.get(keyPair(candidate.team1[1].id, candidate.team2[1].id)) || 0)) * 5;
+
+        const totalScore = partnerScore + opponentScore + individualScore;
+
+        if (totalScore < lowestScore) {
+            lowestScore = totalScore;
+            best = candidate;
         }
-        if (!team1) break;
-
-        // team2: no shared players with team1; lowest weighted penalty score
-        let team2 = null;
-        let bestScore = Infinity;
-        for (const pair of pairs) {
-            const [c, d] = pair;
-            if (assigned.has(c.id) || assigned.has(d.id)) continue;
-            if (c.id === team1[0].id || c.id === team1[1].id ||
-                d.id === team1[0].id || d.id === team1[1].id) continue;
-
-            const score =
-                (partnerCount.get(keyPair(c.id, d.id)) || 0) * 10 +
-                (opponentCount.get(keyMatchup(team1, pair)) || 0) * 5 +
-                ((individualOpponentCount.get(keyPair(team1[0].id, c.id)) || 0) +
-                 (individualOpponentCount.get(keyPair(team1[0].id, d.id)) || 0) +
-                 (individualOpponentCount.get(keyPair(team1[1].id, c.id)) || 0) +
-                 (individualOpponentCount.get(keyPair(team1[1].id, d.id)) || 0)) * 3;
-
-            if (score < bestScore) {
-                bestScore = score;
-                team2 = pair;
-                if (score === 0) break;
-            }
-        }
-        if (!team2) break;
-
-        assigned.add(team1[0].id); assigned.add(team1[1].id);
-        assigned.add(team2[0].id); assigned.add(team2[1].id);
-        courts.push({ team1, team2 });
     }
 
-    const totalPenalty = courts.reduce((sum, { team1, team2 }) =>
-        sum +
-        (partnerCount.get(keyPair(team1[0].id, team1[1].id)) || 0) * 10 +
-        (partnerCount.get(keyPair(team2[0].id, team2[1].id)) || 0) * 10 +
-        (opponentCount.get(keyMatchup(team1, team2)) || 0) * 5, 0);
+    return { ...best, repeatScore: lowestScore };
+}
 
-    return { courts, totalPenalty, filled: courts.length };
+function chooseSitOuts(roster, sitCount, roundIndex) {
+    if (sitCount <= 0) return [];
+
+    return shuffle(roster)
+        .sort((a, b) => {
+            const sitDiff = (a.sitOuts || 0) - (b.sitOuts || 0);
+            if (sitDiff !== 0) return sitDiff;
+
+            const aSatLastRound = (a.lastSatRound ?? Number.NEGATIVE_INFINITY) === roundIndex - 1 ? 1 : 0;
+            const bSatLastRound = (b.lastSatRound ?? Number.NEGATIVE_INFINITY) === roundIndex - 1 ? 1 : 0;
+            return aSatLastRound - bSatLastRound;
+        })
+        .slice(0, sitCount);
 }
 
 // partnerCount: Map<pairKey, number>  — how many times each pair have been partners
 // opponentCount: Map<matchupKey, number> — how many times each pair-vs-pair matchup has occurred
 export function buildRound(roster, roundIndex, selectedCourts, partnerCount, opponentCount, individualOpponentCount) {
-    const total = roster.length;
-    const fullCourts = Math.min(selectedCourts, Math.floor(total / PLAYERS_PER_COURT));
-    const needed = fullCourts * PLAYERS_PER_COURT;
-    const sitCount = Math.max(0, total - needed);
+    const fullCourts = Math.min(selectedCourts, Math.floor(roster.length / PLAYERS_PER_COURT));
+    const activePlayerCount = fullCourts * PLAYERS_PER_COURT;
+    const sitCount = Math.max(0, roster.length - activePlayerCount);
+    const sitOut = chooseSitOuts(roster, sitCount, roundIndex);
+    const sitOutIds = new Set(sitOut.map(p => p.id));
+    const activePlayers = roster.filter(p => !sitOutIds.has(p.id));
 
-    let sitOut = [];
-    if (sitCount > 0) {
-        // Group players into tiers by sit-out count, shuffle within each tier,
-        // then fill from the lowest tier first. This guarantees no player sits out
-        // a second time while any player has not yet sat out at all (or fewer times).
-        const tierMap = new Map();
-        for (const p of roster) {
-            const bucket = tierMap.get(p.sitOuts) ?? [];
-            bucket.push(p);
-            tierMap.set(p.sitOuts, bucket);
+    let bestCourtGroups = [];
+    let lowestRoundRepeatScore = Infinity;
+
+    for (let attempt = 0; attempt < 30; attempt++) {
+        const courtGroups = chunk(shuffle(activePlayers), PLAYERS_PER_COURT)
+            .filter(group => group.length === PLAYERS_PER_COURT)
+            .slice(0, fullCourts);
+
+        if (courtGroups.length !== fullCourts) continue;
+
+        let roundRepeatScore = 0;
+        for (const group of courtGroups) {
+            roundRepeatScore += selectBestPairing(group, partnerCount, opponentCount, individualOpponentCount).repeatScore;
         }
-        const pool = [];
-        for (const key of [...tierMap.keys()].sort((a, b) => a - b)) {
-            pool.push(...shuffle(tierMap.get(key)));
-        }
-        sitOut = pool.slice(0, sitCount);
-    }
 
-    const active = roster.filter(p => !sitOut.some(s => s.id === p.id));
-
-    let bestResult = null;
-    let bestPenalty = Infinity;
-
-    for (let attempt = 0; attempt < 100; attempt++) {
-        const result = tryAssignCourts(active, fullCourts, partnerCount, opponentCount, individualOpponentCount);
-        if (result.filled === fullCourts && result.totalPenalty < bestPenalty) {
-            bestPenalty = result.totalPenalty;
-            bestResult = result;
-            if (bestPenalty === 0) break;
+        if (roundRepeatScore < lowestRoundRepeatScore) {
+            lowestRoundRepeatScore = roundRepeatScore;
+            bestCourtGroups = courtGroups;
+            if (roundRepeatScore === 0) break;
         }
     }
 
-    if (!bestResult) bestResult = { courts: [] };
-
-    const courts = bestResult.courts.map(({ team1, team2 }, i) => {
+    const courts = bestCourtGroups.map((group, i) => {
+        const { team1, team2 } = selectBestPairing(group, partnerCount, opponentCount, individualOpponentCount);
         const pk1 = keyPair(team1[0].id, team1[1].id);
         const pk2 = keyPair(team2[0].id, team2[1].id);
         const mk = keyMatchup(team1, team2);

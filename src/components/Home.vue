@@ -188,7 +188,7 @@ export default {
         .split('\n')
         .map(s => s.trim())
         .filter(Boolean)
-        .map((name, i) => ({ id: i + 1, name, sitOuts: 0 }));
+        .map((name, i) => ({ id: i + 1, name, sitOuts: 0, lastSatRound: Number.NEGATIVE_INFINITY }));
     },
     hasOpenRounds() {
       return this.schedule.some(round => !round.closed);
@@ -285,7 +285,10 @@ export default {
         const round = buildRound(roster, r, this.courtCount, partnerCount, opponentCount, individualOpponentCount);
         round.sitOut.forEach(p => {
           const rp = roster.find(x => x.id === p.id);
-          if (rp) rp.sitOuts += 1;
+          if (rp) {
+            rp.sitOuts += 1;
+            rp.lastSatRound = r;
+          }
         });
         rounds.push(round);
       }
@@ -308,7 +311,7 @@ export default {
       const partnerCount = new Map();
       const opponentCount = new Map();
       const individualOpponentCount = new Map();
-      const roster = this.players.map(p => ({ ...p, sitOuts: 0 }));
+      const roster = this.players.map(p => ({ ...p, sitOuts: 0, lastSatRound: Number.NEGATIVE_INFINITY }));
 
       this.schedule.forEach(round => {
         if (round.closed) {
@@ -338,7 +341,10 @@ export default {
           });
           round.sitOut.forEach(p => {
             const rp = roster.find(x => x.id === p.id);
-            if (rp) rp.sitOuts += 1;
+            if (rp) {
+              rp.sitOuts += 1;
+              rp.lastSatRound = round.index;
+            }
           });
         }
       });
@@ -353,7 +359,10 @@ export default {
           const newRound = buildRound(roster, roundIndex, this.courtCount, partnerCount, opponentCount, individualOpponentCount);
           newRound.sitOut.forEach(p => {
             const rp = roster.find(x => x.id === p.id);
-            if (rp) rp.sitOuts += 1;
+            if (rp) {
+              rp.sitOuts += 1;
+              rp.lastSatRound = roundIndex;
+            }
           });
           newSchedule.push(newRound);
         }
