@@ -82,6 +82,19 @@ jobs:
 
           echo "Provisioning profile installed"
           
+      - name: Auto-increment Build Number
+        run: |
+          # Use GitHub run number as build number to ensure uniqueness
+          BUILD_NUMBER="${{ github.run_number }}"
+          echo "Setting build number to: $BUILD_NUMBER"
+          
+          # Update build number in project
+          cd ios/App
+          agvtool new-version -all "$BUILD_NUMBER"
+          
+          # Verify the change
+          agvtool what-version
+          
       - name: Build and Archive iOS App
         run: |
           xcodebuild \
