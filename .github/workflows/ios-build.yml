@@ -32,7 +32,7 @@ jobs:
     - name: Setup Xcode
       uses: maxim-lobanov/setup-xcode@v1
       with:
-        xcode-version: '16.0'  # Xcode 16 for iOS 26 SDK
+        xcode-version: 'latest-stable'  # Use latest Xcode for iOS 26+ SDK
         
     # Code signing setup (required for archiving)
     - name: Import Code Signing Certificates
