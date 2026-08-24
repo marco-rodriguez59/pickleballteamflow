@@ -114,13 +114,13 @@ jobs:
         retention-days: 30
         
     - name: Upload to TestFlight
-  if: github.ref == 'refs/heads/master'
-  env:
-    APPLEID_USERNAME: ${{ secrets.APPLEID_USERNAME }}
-    APPLEID_PASSWORD: ${{ secrets.APPLEID_APP_PASSWORD }}
-  run: |
-    xcrun altool --upload-app \
-      --type ios \
-      --file $RUNNER_TEMP/build/*.ipa \
-      --username "$APPLEID_USERNAME" \
-      --password "$APPLEID_PASSWORD"
+      if: github.ref == 'refs/heads/master'
+      env:
+        APPLEID_USERNAME: ${{ secrets.APPLEID_USERNAME }}
+        APPLEID_PASSWORD: ${{ secrets.APPLEID_APP_PASSWORD }}
+      run: |
+        xcrun altool --upload-app \
+          --type ios \
+          --file $RUNNER_TEMP/build/*.ipa \
+          --username "$APPLEID_USERNAME" \
+          --password "$APPLEID_PASSWORD"
