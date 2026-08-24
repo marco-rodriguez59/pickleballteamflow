@@ -30,7 +30,7 @@ jobs:
         
       - name: Set iOS deployment target
         run: |
-          sed -i '' 's/\.iOS(\.v26)/.iOS("18.0")/' ios/App/CapApp-SPM/Package.swift
+          sed -i '' -E 's/\.iOS\(\.v[0-9]+\)/.iOS("18.0")/' ios/App/CapApp-SPM/Package.swift
           grep "platforms:" ios/App/CapApp-SPM/Package.swift
 
       - name: Setup Xcode
