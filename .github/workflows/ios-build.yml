@@ -1,126 +1,156 @@
 name: Build iOS App
 
 on:
-  # Trigger on push to main/master or manual workflow dispatch
   push:
-    branches: [ master, main ]
-  workflow_dispatch:  # Allows manual trigger from Actions tab
+    branches: [master, main]
+  workflow_dispatch:
 
 jobs:
   build-ios:
     runs-on: macos-latest
-    
+
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '22'
-        cache: 'npm'
-        
-    - name: Install dependencies
-      run: npm ci
-      
-    - name: Build web app
-      run: npm run build
-      
-    - name: Sync Capacitor iOS
-      run: npx cap sync ios
-      
-    - name: Setup Xcode
-      uses: maxim-lobanov/setup-xcode@v1
-      with:
-        xcode-version: 'latest-stable'  # Use latest Xcode for iOS 26+ SDK
-        
-    # Code signing setup (required for archiving)
-    - name: Import Code Signing Certificates
-      env:
-        BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
-        P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
-        KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
-      run: |
-        # Create variables
-        CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
-        KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
-        
-        # Import certificate from secrets
-        echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o $CERTIFICATE_PATH
-        
-        # Create temporary keychain
-        security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-        security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
-        security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-        
-        # Import certificate to keychain
-        security import $CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
-        security list-keychain -d user -s $KEYCHAIN_PATH
-        
-    - name: Import Provisioning Profile
-      env:
-        PROVISIONING_PROFILE_BASE64: ${{ secrets.PROVISIONING_PROFILE_BASE64 }}
-      run: |
-        # Create provisioning profile path
-        PP_PATH=$RUNNER_TEMP/build_pp.mobileprovision
-        
-        # Import provisioning profile from secrets
-        echo -n "$PROVISIONING_PROFILE_BASE64" | base64 --decode -o $PP_PATH
-        
-        # Copy to Xcode provisioning profiles directory
-        mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-        cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles
-        
-    - name: Build and Archive iOS App
-      run: |
-        xcodebuild -workspace ios/App/App.xcworkspace \
-          -scheme App \
-          -sdk iphoneos \
-          -configuration Release \
-          -archivePath $RUNNER_TEMP/App.xcarchive \
-          clean archive
-          
-    - name: Export IPA
-      run: |
-        # Create export options plist
-        cat > $RUNNER_TEMP/ExportOptions.plist <<EOF
-        <?xml version="1.0" encoding="UTF-8"?>
-        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-        <plist version="1.0">
-        <dict>
-          <key>method</key>
-          <string>app-store</string>
-          <key>teamID</key>
-          <string>${{ secrets.APPLE_TEAM_ID }}</string>
-          <key>uploadSymbols</key>
-          <true/>
-          <key>compileBitcode</key>
-          <false/>
-        </dict>
-        </plist>
-        EOF
-        
-        # Export archive to IPA
-        xcodebuild -exportArchive \
-          -archivePath $RUNNER_TEMP/App.xcarchive \
-          -exportOptionsPlist $RUNNER_TEMP/ExportOptions.plist \
-          -exportPath $RUNNER_TEMP/build
-          
-    - name: Upload IPA Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: PickleballTeamFlow-iOS
-        path: ${{ runner.temp }}/build/*.ipa
-        retention-days: 30
-        
-    - name: Upload to TestFlight
-  if: github.ref == 'refs/heads/master'
-  env:
-    APPLEID_USERNAME: ${{ secrets.APPLEID_USERNAME }}
-    APPLEID_PASSWORD: ${{ secrets.APPLEID_APP_PASSWORD }}
-  run: |
-    xcrun altool --upload-app \
-      --type ios \
-      --file $RUNNER_TEMP/build/*.ipa \
-      --username "$APPLEID_USERNAME" \
-      --password "$APPLEID_PASSWORD"
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build web app
+        run: npm run build
+
+      - name: Sync Capacitor iOS
+        run: npx cap sync ios
+
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: 'latest-stable'
+
+      - name: Import Code Signing Certificate
+        env:
+          BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
+          P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          CERTIFICATE_PATH="$RUNNER_TEMP/build_certificate.p12"
+          KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
+
+          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o "$CERTIFICATE_PATH"
+
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          security import "$CERTIFICATE_PATH" \
+            -P "$P12_PASSWORD" \
+            -A \
+            -t cert \
+            -f pkcs12 \
+            -k "$KEYCHAIN_PATH"
+
+          security set-key-partition-list \
+            -S apple-tool:,apple: \
+            -k "$KEYCHAIN_PASSWORD" \
+            "$KEYCHAIN_PATH"
+
+          security list-keychains -d user -s "$KEYCHAIN_PATH" login.keychain-db
+
+      - name: Import Provisioning Profile
+        env:
+          PROVISIONING_PROFILE_BASE64: ${{ secrets.PROVISIONING_PROFILE_BASE64 }}
+        run: |
+          PP_PATH="$RUNNER_TEMP/build_pp.mobileprovision"
+          PROFILES_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
+
+          echo -n "$PROVISIONING_PROFILE_BASE64" | base64 --decode -o "$PP_PATH"
+
+          mkdir -p "$PROFILES_DIR"
+
+          PROFILE_UUID=$(
+            security cms -D -i "$PP_PATH" |
+            /usr/libexec/PlistBuddy -c "Print UUID" /dev/stdin
+          )
+
+          cp "$PP_PATH" "$PROFILES_DIR/$PROFILE_UUID.mobileprovision"
+
+          echo "Installed provisioning profile: $PROFILE_UUID"
+
+      - name: Build and Archive iOS App
+        run: |
+          xcodebuild \
+            -workspace ios/App/App.xcworkspace \
+            -scheme App \
+            -sdk iphoneos \
+            -configuration Release \
+            -archivePath "$RUNNER_TEMP/App.xcarchive" \
+            DEVELOPMENT_TEAM="${{ secrets.APPLE_TEAM_ID }}" \
+            clean archive
+
+      - name: Export IPA
+        run: |
+          cat > "$RUNNER_TEMP/ExportOptions.plist" <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>method</key>
+              <string>app-store-connect</string>
+
+              <key>teamID</key>
+              <string>${{ secrets.APPLE_TEAM_ID }}</string>
+
+              <key>signingStyle</key>
+              <string>automatic</string>
+
+              <key>uploadSymbols</key>
+              <true/>
+          </dict>
+          </plist>
+          EOF
+
+          xcodebuild \
+            -exportArchive \
+            -archivePath "$RUNNER_TEMP/App.xcarchive" \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
+            -exportPath "$RUNNER_TEMP/build"
+
+      - name: Upload IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: PickleballTeamFlow-iOS
+          path: ${{ runner.temp }}/build/*.ipa
+          retention-days: 30
+
+      - name: Configure App Store Connect API Key
+        if: github.ref == 'refs/heads/master'
+        env:
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+        run: |
+          mkdir -p "$HOME/.appstoreconnect/private_keys"
+
+          printf '%s' "$APP_STORE_CONNECT_PRIVATE_KEY" > \
+            "$HOME/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_KEY_ID}.p8"
+
+          chmod 600 \
+            "$HOME/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_KEY_ID}.p8"
+
+      - name: Upload to TestFlight
+        if: github.ref == 'refs/heads/master'
+        env:
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+        run: |
+          xcrun altool \
+            --upload-app \
+            --type ios \
+            --file "$RUNNER_TEMP"/build/*.ipa \
+            --apiKey "$APP_STORE_CONNECT_KEY_ID" \
+            --apiIssuer "$APP_STORE_CONNECT_ISSUER_ID"
