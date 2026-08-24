@@ -79,9 +79,7 @@ jobs:
 
       - name: Build and Archive iOS App
         run: |
-
-      - name: Build and Archive iOS App
-        run: |
+        
           xcodebuild \
             -workspace ios/App/App.xcworkspace \
             -scheme App \
