@@ -1,7 +1,6 @@
 # Capacitor
-android/
-ios/
-www/
+# Keep ios/ and android/ - they contain project configuration!
+www/        # Build output - regenerate with npm run build
 
 # Dependencies
 node_modules/
