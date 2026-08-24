@@ -27,6 +27,11 @@ jobs:
 
       - name: Sync Capacitor iOS
         run: npx cap sync ios
+        
+      - name: Set iOS deployment target
+        run: |
+          sed -i '' 's/\.iOS(\.v26)/.iOS(.v18)/' ios/App/CapApp-SPM/Package.swift
+          grep "platforms:" ios/App/CapApp-SPM/Package.swift
 
       - name: Setup Xcode
         uses: maxim-lobanov/setup-xcode@v1
