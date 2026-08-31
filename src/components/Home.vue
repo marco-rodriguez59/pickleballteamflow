@@ -208,9 +208,9 @@
           </li>
         </ul>
         <button class="btn btn-secondary btn-sm" @click="closeSubModal">Cancel</button>
-      </div>
-    </div>
+       </div>
   </div>
+</div>
 </template>
 
 <script>
