@@ -409,7 +409,7 @@
               v-if="!round.closed"
               class="sit-out-help"
             >
-              Tap a player on a court to make a substitution.
+              Need to make a change? Tap any court player to swap them with someone sitting out.
             </div>
           </div>
 
@@ -420,26 +420,99 @@
   </div>
 </section>
     <!-- Sub-out modal -->
-    <div v-if="subModal.show" class="sub-modal-overlay" @click.self="closeSubModal">
-      <div class="sub-modal-box shadow-lg">
-        <h5 class="mb-3">Sub Out Player</h5>
-        <p class="mb-3">
-          Select a <strong>Sit Out</strong> player to replace
-          <strong>{{ subModal.player?.name }}</strong> on Court {{ subModal.court?.courtNumber }}:
-        </p>
-        <ul class="list-group mb-3">
-          <li
-            v-for="p in subModal.round.sitOut"
-            :key="p.id"
-            class="list-group-item list-group-item-action"
-            style="cursor: pointer;"
-            @click="confirmSubstitution(p)"
-          >
-            {{ showNumbers ? '(' + p.id + ') ' : '' }}{{ p.name }}
-          </li>
-        </ul>
-           <button class="btn btn-secondary btn-sm" @click="closeSubModal">Cancel</button>
+<!-- Substitution modal -->
+<div
+  v-if="subModal.show"
+  class="sub-modal-overlay"
+  role="presentation"
+  @click.self="closeSubModal"
+>
+  <div
+    class="sub-modal-box shadow-lg"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="subModalTitle"
+    aria-describedby="subModalDescription"
+  >
+    <div class="sub-modal-header">
+      <div>
+        <div class="sub-modal-eyebrow">PLAYER SUBSTITUTION</div>
+        <h2 id="subModalTitle" class="sub-modal-title mb-0">
+          Swap Player
+        </h2>
       </div>
+
+      <button
+        type="button"
+        class="btn sub-modal-close"
+        aria-label="Close substitution window"
+        @click="closeSubModal"
+      >
+        ✕
+      </button>
+    </div>
+
+    <div
+      id="subModalDescription"
+      class="sub-current-player"
+    >
+      <div class="small text-secondary mb-1">
+        Replace
+      </div>
+
+      <div class="sub-current-player-name">
+        {{ subModal.player?.name }}
+      </div>
+
+      <div class="small text-secondary mt-1">
+        Court {{ subModal.court?.courtNumber }} ·
+        Round {{ subModal.round?.index }}
+      </div>
+    </div>
+
+    <div class="sub-instruction">
+      Choose a player who is currently sitting out:
+    </div>
+
+    <div class="sub-player-list">
+      <button
+        v-for="p in subModal.round?.sitOut || []"
+        :key="p.id"
+        type="button"
+        class="sub-player-option"
+        @click="confirmSubstitution(p)"
+      >
+        <span class="sub-player-option-name">
+          <span
+            v-if="showNumbers"
+            class="player-number"
+          >
+            {{ p.id }}
+          </span>
+
+          {{ p.name }}
+        </span>
+
+        <span class="sub-player-action">
+          Swap
+          <span aria-hidden="true">→</span>
+        </span>
+      </button>
+    </div>
+
+    <div class="sub-modal-note">
+      <span aria-hidden="true">ℹ️</span>
+      {{ subModal.player?.name }} will move to Sit Out for this round.
+    </div>
+
+    <div class="d-grid mt-3">
+      <button
+        type="button"
+        class="btn btn-outline-secondary sub-cancel-button"
+        @click="closeSubModal"
+      >
+        Cancel
+      </button>
     </div>
   </div>
 </div>
@@ -1229,6 +1302,171 @@ export default {
 
   .player-row {
     min-height: 52px;
+    font-size: 1.05rem;
+  }
+  .sub-modal-box {
+  background: #fff;
+  border-radius: 1rem;
+  padding: 1.25rem;
+  max-width: 460px;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.sub-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.sub-modal-eyebrow {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #198754;
+}
+
+.sub-modal-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.sub-modal-close {
+  width: 44px;
+  height: 44px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border-radius: 50%;
+  background: #f1f3f5;
+
+  font-size: 1.1rem;
+}
+
+.sub-current-player {
+  margin-top: 1rem;
+  padding: 1rem;
+
+  border-radius: 0.875rem;
+
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+}
+
+.sub-current-player-name {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.sub-instruction {
+  margin-top: 1.25rem;
+  margin-bottom: 0.65rem;
+
+  font-weight: 600;
+}
+
+.sub-player-list {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.sub-player-option {
+  width: 100%;
+  min-height: 56px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+
+  padding: 0.7rem 0.85rem;
+
+  border: 1px solid #ced4da;
+  border-radius: 0.75rem;
+
+  background: #fff;
+  color: #212529;
+
+  text-align: left;
+}
+
+.sub-player-option:hover,
+.sub-player-option:focus-visible {
+  border-color: #198754;
+  background: #f0f8f4;
+}
+
+.sub-player-option:focus-visible {
+  outline: 3px solid rgba(25, 135, 84, 0.25);
+  outline-offset: 1px;
+}
+
+.sub-player-option-name {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.sub-player-action {
+  white-space: nowrap;
+
+  color: #198754;
+
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.sub-modal-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+
+  margin-top: 1rem;
+  padding: 0.75rem;
+
+  border-radius: 0.65rem;
+
+  background: #fff8e1;
+
+  color: #664d03;
+  font-size: 0.85rem;
+}
+
+.sub-cancel-button {
+  min-height: 48px;
+  border-radius: 0.75rem;
+  font-weight: 600;
+}
+
+@media (max-width: 575.98px) {
+  .sub-modal-overlay {
+    align-items: flex-end;
+  }
+
+  .sub-modal-box {
+    max-width: none;
+    max-height: 88vh;
+
+    border-radius: 1rem 1rem 0 0;
+
+    padding-bottom: calc(
+      1.25rem + env(safe-area-inset-bottom)
+    );
+  }
+
+  .sub-player-option {
+    min-height: 60px;
+  }
+
+  .sub-player-option-name {
     font-size: 1.05rem;
   }
 }
