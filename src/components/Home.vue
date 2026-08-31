@@ -2660,8 +2660,8 @@ export default {
     480px
   );
 
-  --height: auto;
-  --max-height: 86vh;
+  --height: 70vh;
+  --max-height: 700px;
 
   --border-radius: 1rem;
 
@@ -3207,15 +3207,15 @@ input:focus-visible {
   }
 
   .substitution-modal {
-    --width: 100%;
-    --height: auto;
-    --max-height: 88vh;
+  --width: 100%;
+  --height: 72vh;
+  --max-height: 72vh;
 
-    --border-radius:
-      1rem 1rem 0 0;
+  --border-radius:
+    1rem 1rem 0 0;
 
-    align-items: flex-end;
-  }
+  align-items: flex-end;
+}
 
   .sub-modal-shell {
     padding:
