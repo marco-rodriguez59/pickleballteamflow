@@ -870,23 +870,6 @@ export default {
 </script>
 
 <style scoped>
-  .page-title {
-  font-size: clamp(1.5rem, 5vw, 2.5rem);
-}
-.clickable-player {
-  cursor: pointer;
-  border-radius: 4px;
-  padding: 2px 4px;
-  transition: background-color 0.15s;
-}
-.clickable-player:hover {
-  background-color: #fff3cd;
-}
-.sub-out-badge {
-  font-size: 0.7em;
-  color: #6c757d;
-  margin-left: 4px;
-}
 .sub-modal-overlay {
   position: fixed;
   inset: 0;
@@ -901,17 +884,7 @@ export default {
   padding-bottom: calc(16px + env(safe-area-inset-bottom));
   padding-left: calc(16px + env(safe-area-inset-left));
 }
-
-.sub-modal-box {
-  background: #fff;
-  border-radius: 12px;
-  padding: 1.5rem;
-  max-width: 420px;
-  width: 100%;
-  max-height: 85vh;
-  overflow-y: auto;
-}
-  .app-eyebrow {
+.app-eyebrow {
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.12em;
