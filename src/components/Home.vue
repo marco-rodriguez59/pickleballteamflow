@@ -13,7 +13,7 @@
               id="peopleNames" 
               style="height: 100px;"
             ></textarea>
-            <label for="peopleNames">Roster</label>
+            <label for="peopleNames">Player Roster</label>
           </div>
           <div class="mb-3">
             <input 
