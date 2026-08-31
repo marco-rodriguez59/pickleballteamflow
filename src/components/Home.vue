@@ -337,11 +337,53 @@
                 </h4>
               </div>
 
-              <div
-                 v-if="courtView === 'list'"
-                  class="court-players"
-              >
-                <div
+<div
+  v-if="courtView === 'list'"
+  class="court-players"
+>
+  <button
+    v-for="player in court.players"
+    :key="player.id"
+    type="button"
+    class="player-row"
+    :class="{
+      'player-row-substitutable':
+        !round.closed && round.sitOut.length > 0
+    }"
+    :disabled="round.closed || round.sitOut.length === 0"
+    :aria-label="
+      !round.closed && round.sitOut.length > 0
+        ? 'Substitute ' + player.name
+        : player.name
+    "
+    @click="
+      !round.closed &&
+      round.sitOut.length > 0 &&
+      openSubModal(round, court, player)
+    "
+  >
+    <span class="player-name">
+      <span
+        v-if="showNumbers"
+        class="player-number"
+      >
+        {{ player.id }}
+      </span>
+
+      {{ player.name }}
+    </span>
+
+    <span
+      v-if="!round.closed && round.sitOut.length > 0"
+      class="swap-indicator"
+      aria-hidden="true"
+    >
+      ↕
+    </span>
+  </button>
+</div>
+
+<div
   v-else
   class="vs-matchup"
 >
