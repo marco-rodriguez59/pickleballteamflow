@@ -264,7 +264,6 @@ export default {
         
         this.ocrProgress = 'Processing image...';
         const { data: { text } } = await worker.recognize(file);
-        console.log('OCR Result:', text);
         await worker.terminate();
 
         // Extract names (lines with text, clean up)
@@ -286,9 +285,13 @@ export default {
           this.showMessage('No text found in image. Please try a clearer photo.', 'alert alert-warning');
         }
       } catch (error) {
-        console.error('OCR Error:', error);
-        this.showMessage('Failed to process image. Please try again.', 'alert alert-danger');
-      } finally {
+  console.error('OCR Error:', error);
+
+  this.showMessage(
+    'Unable to read names from that image. Please try another photo or enter the player names manually.',
+    'alert alert-danger'
+  );
+}finally {
         this.isProcessing = false;
         this.ocrProgress = '';
         // Reset file input
