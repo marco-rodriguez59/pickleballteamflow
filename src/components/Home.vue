@@ -444,10 +444,11 @@
 
       <span>{{ player.name }}</span>
     </button>
-  </div>
+    </div>
 </div>
 
           </div>
+        </div>
 
           <div
             v-if="round.courts.length < courtCount"
