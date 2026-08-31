@@ -219,17 +219,45 @@
       </div>
     </div>
 
-    <div class="form-check player-number-toggle mt-2 mt-sm-0">
-      <input
-        class="form-check-input"
-        type="checkbox"
-        id="showNumbers"
-        v-model="showNumbers"
-      >
-      <label class="form-check-label" for="showNumbers">
-        Show player numbers
-      </label>
-    </div>
+<div class="assignment-controls mt-2 mt-sm-0">
+  <div
+    class="btn-group view-toggle"
+    role="group"
+    aria-label="Court assignment view"
+  >
+    <button
+      type="button"
+      class="btn"
+      :class="courtView === 'list' ? 'btn-success' : 'btn-outline-success'"
+      :aria-pressed="courtView === 'list'"
+      @click="courtView = 'list'"
+    >
+      ☰ List
+    </button>
+
+    <button
+      type="button"
+      class="btn"
+      :class="courtView === 'vs' ? 'btn-success' : 'btn-outline-success'"
+      :aria-pressed="courtView === 'vs'"
+      @click="courtView = 'vs'"
+    >
+      VS
+    </button>
+  </div>
+
+  <div class="form-check player-number-toggle">
+    <input
+      class="form-check-input"
+      type="checkbox"
+      id="showNumbers"
+      v-model="showNumbers"
+    >
+    <label class="form-check-label" for="showNumbers">
+      Show player numbers
+    </label>
+  </div>
+</div>
   </div>
 
   <div
@@ -531,6 +559,7 @@ export default {
       namesText: '',
       courtCount: 2,
       showNumbers: true,
+      courtView: 'list',
       roundCount: 7,
       schedule: [],
       isProcessing: false,
