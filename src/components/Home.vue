@@ -127,7 +127,7 @@
     </div>
 
     <div v-if="!schedule.length" class="card card-rounded shadow-sm mt-2 p-4 text-center text-secondary border border-dashed">
-      Enter at least <strong>8 players</strong> and click <em>Generate</em> to see court assignments here.
+      Enter at least <strong>8 players</strong> and select <em>Generate Court Assignments</em> to get started.
     </div>
 
     <div class="round" v-if="schedule.length > 0">
