@@ -1,41 +1,100 @@
 <template>
   <div>
-    <h1 class="text-center text-body mb-4 page-title">🏓 Pickleball Court Assignments</h1>
-    
-    <div>
-      <div class="row">
-        <div class="col">
-          <div class="form-floating">
-            <textarea 
-              class="form-control auto-resize-textarea mb-3" 
-              v-model="namesText" 
-              placeholder="Alice&#10;Bob&#10;Charlie" 
-              id="peopleNames" 
-              style="height: 100px;"
-            ></textarea>
-            <label for="peopleNames">Player Roster</label>
-          </div>
-          <div class="mb-3">
-            <input 
-              type="file" 
-              ref="imageInput" 
-              @change="handleImageUpload" 
-              accept="image/*" 
-              capture="environment"
-              style="display: none;"
-            />
-            <button class="btn btn-outline-primary btn-sm" @click="$refs.imageInput.click()" :disabled="isProcessing">
-              📷 {{ isProcessing ? 'Processing...' : 'Scan Names from Photo' }}
-            </button>
-            <div v-if="ocrProgress" class="small text-secondary mt-1">{{ ocrProgress }}</div>
+<section class="setup-section mb-4">
+  <div class="text-center mb-4">
+    <div class="app-eyebrow">PICKLEBALL TEAM FLOW</div>
+    <h1 class="page-title mb-2">Pickleball Court Assignments</h1>
+    <p class="text-secondary mb-0">
+      Set up your players, courts, and rounds.
+    </p>
+  </div>
+
+  <div class="card setup-card shadow-sm">
+    <div class="card-body p-3 p-sm-4">
+
+      <div class="setup-heading d-flex align-items-center gap-2 mb-4">
+        <div class="setup-icon" aria-hidden="true">👥</div>
+        <div>
+          <h2 class="h5 mb-0">Game Setup</h2>
+          <div class="small text-secondary">
+            Everything you need to create your court assignments.
           </div>
         </div>
       </div>
-      
-      <div class="row">
-        <div class="col-12 col-sm-6">
-          <div class="form-floating">
-            <select class="form-select form-control mb-3" id="courts" v-model="courtCount" aria-label="Number of Courts">
+
+      <div class="mb-4">
+        <div class="d-flex justify-content-between align-items-end gap-2 mb-2">
+          <div>
+            <label for="peopleNames" class="form-label fw-semibold mb-1">
+              Player Roster
+            </label>
+            <div class="small text-secondary">
+              Enter one player per line.
+            </div>
+          </div>
+
+          <div
+            class="player-count"
+            :class="{ 'player-count-ready': players.length >= 8 && players.length <= 24 }"
+          >
+            {{ players.length }} player{{ players.length === 1 ? '' : 's' }}
+          </div>
+        </div>
+
+        <textarea
+          class="form-control roster-textarea"
+          v-model="namesText"
+          placeholder="John Smith&#10;Sarah Johnson&#10;Mike Davis"
+          id="peopleNames"
+          aria-describedby="rosterHelp"
+        ></textarea>
+
+        <div id="rosterHelp" class="form-text">
+          8–24 players are supported.
+        </div>
+
+        <input
+          type="file"
+          ref="imageInput"
+          @change="handleImageUpload"
+          accept="image/*"
+          capture="environment"
+          style="display: none;"
+        />
+
+        <div class="d-grid mt-3">
+          <button
+            class="btn btn-outline-success scan-button"
+            @click="$refs.imageInput.click()"
+            :disabled="isProcessing"
+          >
+            <span aria-hidden="true">📷</span>
+            {{ isProcessing ? 'Processing Photo...' : 'Scan Names from Photo' }}
+          </button>
+        </div>
+
+        <div
+          v-if="ocrProgress"
+          class="small text-secondary mt-2"
+          aria-live="polite"
+        >
+          {{ ocrProgress }}
+        </div>
+      </div>
+
+      <div class="row g-3 mb-4">
+        <div class="col-6">
+          <div class="setting-card h-100">
+            <label for="courts" class="setting-label">
+              Courts
+            </label>
+
+            <select
+              class="form-select setting-select"
+              id="courts"
+              v-model="courtCount"
+              aria-label="Number of Courts"
+            >
               <option value="2">2</option>
               <option value="3">3</option>
               <option value="4">4</option>
@@ -48,12 +107,25 @@
               <option value="11">11</option>
               <option value="12">12</option>
             </select>
-            <label for="courts">Number of Courts</label>
+
+            <div class="small text-secondary mt-2">
+              {{ courtCount * 4 }} playing spots
+            </div>
           </div>
         </div>
-        <div class="col-12 col-sm-6">
-          <div class="form-floating">
-            <select class="form-select form-control mb-3" id="numRounds" v-model="roundCount" aria-label="Number of Rounds">
+
+        <div class="col-6">
+          <div class="setting-card h-100">
+            <label for="numRounds" class="setting-label">
+              Rounds
+            </label>
+
+            <select
+              class="form-select setting-select"
+              id="numRounds"
+              v-model="roundCount"
+              aria-label="Number of Rounds"
+            >
               <option value="1">1</option>
               <option value="2">2</option>
               <option value="3">3</option>
@@ -67,46 +139,68 @@
               <option value="11">11</option>
               <option value="12">12</option>
             </select>
-            <label for="numRounds">Number of Rounds</label>
+
+            <div class="small text-secondary mt-2">
+              Planned games
+            </div>
           </div>
         </div>
       </div>
 
-     <div class="row g-2 mt-1">
-  <div class="col-12 col-md">
-    <div class="d-grid d-sm-flex gap-2">
-      <button
-        class="btn btn-secondary"
-        @click="clearAll()"
-      >
-        🗑️ Clear Results
-      </button>
+      <div class="game-summary mb-3">
+        <div>
+          <strong>{{ players.length }}</strong>
+          <span>Players</span>
+        </div>
 
-      <button
-        v-if="schedule.length && hasOpenRounds"
-        class="btn btn-warning"
-        @click="regenerateRemaining()"
+        <div>
+          <strong>{{ courtCount }}</strong>
+          <span>Courts</span>
+        </div>
+
+        <div>
+          <strong>{{ roundCount }}</strong>
+          <span>Rounds</span>
+        </div>
+
+        <div>
+          <strong>{{ Math.min(players.length, courtCount * 4) }}</strong>
+          <span>Playing</span>
+        </div>
+      </div>
+
+      <div class="d-grid">
+        <button
+          class="btn btn-success generate-button"
+          @click="generate()"
+        >
+          <span aria-hidden="true">🏓</span>
+          Generate Court Assignments
+        </button>
+      </div>
+
+      <div
+        v-if="schedule.length"
+        class="d-flex flex-column flex-sm-row gap-2 mt-3"
       >
-        🔄 Regenerate Open Rounds
-      </button>
+        <button
+          class="btn btn-outline-secondary flex-fill secondary-action"
+          @click="clearAll()"
+        >
+          🗑️ Clear Assignments
+        </button>
+
+        <button
+          v-if="hasOpenRounds"
+          class="btn btn-outline-warning flex-fill secondary-action"
+          @click="regenerateRemaining()"
+        >
+          🔄 Regenerate Open Rounds
+        </button>
+      </div>
     </div>
   </div>
-
-  <div class="col-12 col-md-auto">
-    <div class="d-grid">
-      <button
-        class="btn btn-primary"
-        @click="generate()"
-      >
-       🏓 Generate Court Assignments
-      </button>
-    </div>
-  </div>
-</div>
-    
-    <div class="small text-secondary mt-2">
-      Capacity: {{ courtCount * 4 }} &middot; Active Players: {{ players.length }}
-    </div>
+</section>
     
     <div id="message" class="mt-3"></div>
     
@@ -500,5 +594,148 @@ export default {
   width: 100%;
   max-height: 85vh;
   overflow-y: auto;
+}
+  .app-eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #198754;
+}
+
+.page-title {
+  font-size: clamp(1.7rem, 5vw, 2.5rem);
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.setup-card {
+  border: 0;
+  border-radius: 1rem;
+}
+
+.setup-heading {
+  border-bottom: 1px solid #dee2e6;
+  padding-bottom: 1rem;
+}
+
+.setup-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #e9f7ef;
+  font-size: 1.25rem;
+}
+
+.player-count {
+  white-space: nowrap;
+  font-weight: 600;
+  color: #6c757d;
+}
+
+.player-count-ready {
+  color: #198754;
+}
+
+.roster-textarea {
+  min-height: 210px;
+  resize: vertical;
+  font-size: 1rem;
+  line-height: 1.55;
+  border-radius: 0.75rem;
+}
+
+.scan-button,
+.generate-button,
+.secondary-action {
+  min-height: 50px;
+  border-radius: 0.75rem;
+  font-weight: 600;
+}
+
+.generate-button {
+  font-size: 1.05rem;
+  min-height: 56px;
+}
+
+.setting-card {
+  border: 1px solid #dee2e6;
+  border-radius: 0.875rem;
+  padding: 1rem;
+  text-align: center;
+  background: #fff;
+}
+
+.setting-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.5rem;
+}
+
+.setting-select {
+  min-height: 52px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.game-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border: 1px solid #dee2e6;
+  border-radius: 0.875rem;
+  overflow: hidden;
+}
+
+.game-summary > div {
+  text-align: center;
+  padding: 0.85rem 0.25rem;
+}
+
+.game-summary > div + div {
+  border-left: 1px solid #dee2e6;
+}
+
+.game-summary strong,
+.game-summary span {
+  display: block;
+}
+
+.game-summary strong {
+  font-size: 1.15rem;
+}
+
+.game-summary span {
+  margin-top: 0.15rem;
+  font-size: 0.72rem;
+  color: #6c757d;
+}
+
+@media (max-width: 575.98px) {
+  .setup-card .card-body {
+    padding: 1rem;
+  }
+
+  .roster-textarea {
+    min-height: 190px;
+    font-size: 16px;
+  }
+
+  .setting-card {
+    padding: 0.85rem 0.65rem;
+  }
+
+  .game-summary strong {
+    font-size: 1rem;
+  }
+
+  .game-summary span {
+    font-size: 0.68rem;
+  }
 }
 </style>
