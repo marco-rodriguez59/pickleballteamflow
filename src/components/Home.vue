@@ -350,17 +350,17 @@
       'player-row-substitutable':
         !round.closed && round.sitOut.length > 0
     }"
-:disabled="round.closed || round.sitOut.length === 0"
-:aria-label="
-  !round.closed && round.sitOut.length > 0
-    ? 'Substitute ' + player.name
-    : player.name
-"
-@click="
-  !round.closed &&
-  round.sitOut.length > 0 &&
-  openSubModal(round, court, player)
-"
+    :disabled="round.closed || round.sitOut.length === 0"
+    :aria-label="
+      !round.closed && round.sitOut.length > 0
+        ? 'Substitute ' + player.name
+        : player.name
+    "
+    @click="
+      !round.closed &&
+      round.sitOut.length > 0 &&
+      openSubModal(round, court, player)
+    "
   >
     <span class="player-name">
       <span
@@ -396,16 +396,16 @@
       type="button"
       class="vs-player"
       :disabled="round.closed || round.sitOut.length === 0"
-:aria-label="
-  !round.closed && round.sitOut.length > 0
-    ? 'Substitute ' + player.name
-    : player.name
-"
-@click="
-  !round.closed &&
-  round.sitOut.length > 0 &&
-  openSubModal(round, court, player)
-"
+      :aria-label="
+        !round.closed && round.sitOut.length > 0
+          ? 'Substitute ' + player.name
+          : player.name
+      "
+      @click="
+        !round.closed &&
+        round.sitOut.length > 0 &&
+        openSubModal(round, court, player)
+      "
     >
       <span
         v-if="showNumbers"
@@ -434,6 +434,11 @@
       type="button"
       class="vs-player"
       :disabled="round.closed || round.sitOut.length === 0"
+      :aria-label="
+        !round.closed && round.sitOut.length > 0
+          ? 'Substitute ' + player.name
+          : player.name
+      "
       @click="
         !round.closed &&
         round.sitOut.length > 0 &&
@@ -449,7 +454,7 @@
 
       <span>{{ player.name }}</span>
     </button>
-    </div>
+  </div>
 </div>
 
           </div>
