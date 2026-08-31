@@ -1701,4 +1701,128 @@ export default {
     font-size: 1.05rem;
   }
 }
+  /* Checkpoint 4: accessibility and mobile readability polish */
+
+button,
+select,
+textarea,
+input {
+  font-family: inherit;
+}
+
+button:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+input:focus-visible {
+  outline: 3px solid rgba(25, 135, 84, 0.28);
+  outline-offset: 2px;
+}
+
+.view-toggle .btn {
+  font-size: 1rem;
+}
+
+.player-row,
+.vs-player {
+  line-height: 1.3;
+}
+
+.sit-out-help {
+  line-height: 1.45;
+}
+
+@media (max-width: 575.98px) {
+  .assignments-title {
+    font-size: 1.55rem;
+  }
+
+  .assignment-controls {
+    gap: 0.65rem;
+  }
+
+  .view-toggle .btn {
+    min-height: 48px;
+    font-size: 1rem;
+  }
+
+  .player-number-toggle .form-check-label {
+    font-size: 1rem;
+  }
+
+  .round-card-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  .round-card-header > div:last-child {
+    width: 100%;
+    flex-direction: row;
+    align-items: center !important;
+    justify-content: space-between;
+  }
+
+  .round-title {
+    font-size: 1.35rem;
+  }
+
+  .round-status {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.7rem;
+  }
+
+  .round-close-button {
+    min-height: 48px;
+    font-size: 0.95rem;
+    padding-left: 0.85rem;
+    padding-right: 0.85rem;
+  }
+
+  .court-card-header {
+    padding: 0.9rem;
+  }
+
+  .court-title {
+    font-size: 1.1rem;
+  }
+
+  .court-players {
+    padding: 0.35rem;
+  }
+
+  .player-row {
+    min-height: 56px;
+    padding: 0.75rem;
+    font-size: 1.08rem;
+  }
+
+  .vs-player {
+    min-height: 56px;
+    font-size: 1.05rem;
+  }
+
+  .player-number {
+    min-width: 30px;
+    height: 30px;
+    font-size: 0.82rem;
+  }
+
+  .sit-out-card {
+    padding: 0.9rem;
+  }
+
+  .sit-out-title {
+    font-size: 1.15rem;
+  }
+
+  .sit-out-player {
+    min-height: 44px;
+    font-size: 1rem;
+  }
+
+  .sit-out-help {
+    font-size: 0.95rem;
+  }
+}
 </style>
