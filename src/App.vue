@@ -1,219 +1,244 @@
 <template>
-  <div class="app-shell">
-    <!-- Navigation Bar -->
-    <nav
-      class="navbar navbar-expand-sm app-navbar"
-      aria-label="Main navigation"
-    >
-      <div class="container-fluid">
-        <router-link
-          to="/"
-          class="navbar-brand app-brand"
-          aria-label="Pickleball Team Flow home"
-        >
-          <img
-          src="./assets/pickleball-team-flow-mark.png"
-          alt=""
-          class="brand-logo"
-          aria-hidden="true"
-          > 
-          <span>Pickleball Team Flow</span>
-        </router-link>
+  <ion-app>
+    <div class="app-shell">
+      <ion-header class="app-header">
+        <ion-toolbar class="brand-toolbar">
+          <router-link
+            to="/"
+            class="app-brand"
+            aria-label="Pickleball Team Flow home"
+          >
+            <img
+              src="./assets/pickleball-team-flow-mark.png"
+              alt=""
+              class="brand-logo"
+              aria-hidden="true"
+            >
+            <span>Pickleball Team Flow</span>
+          </router-link>
 
-        <button
-          class="navbar-toggler"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarNav"
-          aria-controls="navbarNav"
-          aria-expanded="false"
-          aria-label="Open navigation menu"
-        >
-          <span class="navbar-toggler-icon"></span>
-        </button>
+          <ion-buttons slot="end">
+            <ion-button
+              id="main-menu-trigger"
+              aria-label="Open navigation menu"
+            >
+              <ion-icon
+                :icon="menuOutline"
+                slot="icon-only"
+              />
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
 
-        <div
-          id="navbarNav"
-          class="collapse navbar-collapse"
-        >
-          <ul class="navbar-nav ms-auto app-nav-links">
-            <li class="nav-item">
-              <router-link
-                to="/"
-                class="nav-link"
-                active-class="active"
-                exact-active-class="active"
-              >
-                Home
-              </router-link>
-            </li>
+      <ion-popover
+        trigger="main-menu-trigger"
+        trigger-action="click"
+        dismiss-on-select
+      >
+        <ion-content>
+          <ion-list lines="none">
+            <ion-item
+              button
+              router-link="/"
+              router-direction="root"
+            >
+              <ion-icon
+                :icon="homeOutline"
+                slot="start"
+              />
+              <ion-label>Home</ion-label>
+            </ion-item>
 
-            <li class="nav-item">
-              <router-link
-                to="/about"
-                class="nav-link"
-                active-class="active"
-              >
-                About
-              </router-link>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </nav>
+            <ion-item
+              button
+              router-link="/about"
+              router-direction="forward"
+            >
+              <ion-icon
+                :icon="informationCircleOutline"
+                slot="start"
+              />
+              <ion-label>About</ion-label>
+            </ion-item>
+          </ion-list>
+        </ion-content>
+      </ion-popover>
 
-    <main class="container app-content">
-      <router-view v-slot="{ Component }">
-        <keep-alive>
-          <component :is="Component" />
-        </keep-alive>
-      </router-view>
-    </main>
-  </div>
+      <main class="app-content">
+        <router-view v-slot="{ Component }">
+          <keep-alive>
+            <component :is="Component" />
+          </keep-alive>
+        </router-view>
+      </main>
+    </div>
+  </ion-app>
 </template>
 
 <script>
+import {
+  IonApp,
+  IonButton,
+  IonButtons,
+  IonContent,
+  IonHeader,
+  IonIcon,
+  IonItem,
+  IonLabel,
+  IonList,
+  IonPopover,
+  IonToolbar
+} from '@ionic/vue'
+
+import {
+  homeOutline,
+  informationCircleOutline,
+  menuOutline
+} from 'ionicons/icons'
+
 export default {
-  name: 'App'
+  name: 'App',
+
+  components: {
+    IonApp,
+    IonButton,
+    IonButtons,
+    IonContent,
+    IonHeader,
+    IonIcon,
+    IonItem,
+    IonLabel,
+    IonList,
+    IonPopover,
+    IonToolbar
+  },
+
+  setup() {
+    return {
+      homeOutline,
+      informationCircleOutline,
+      menuOutline
+    }
+  }
 }
 </script>
 
 <style scoped>
-.app-navbar {
-  margin-bottom: 1.5rem;
-
-  border: 1px solid #e9ecef;
-  border-radius: 0.875rem;
-
-  background: #fff;
-
-  box-shadow: 0 2px 8px rgba(33, 37, 41, 0.06);
+.app-shell {
+  min-height: 100%;
+  background: #f5f5f5;
 }
 
-.app-navbar .container-fluid {
-  min-height: 64px;
-  padding-left: 1rem;
-  padding-right: 1rem;
+.app-header {
+  box-shadow: 0 2px 10px rgba(14, 75, 46, 0.18);
+}
+
+.brand-toolbar {
+  --background: #0e4b2e;
+  --color: #ffffff;
+  --border-width: 0;
+  --min-height: 68px;
+
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
 }
 
 .app-brand {
   display: inline-flex;
   align-items: center;
-  gap: 0.55rem;
+  gap: 0.65rem;
 
-  margin-right: 1rem;
+  margin-left: 1rem;
 
-  color: #212529;
+  color: #ffffff;
+  text-decoration: none;
 
   font-size: 1.05rem;
   font-weight: 700;
   line-height: 1.2;
-
-  text-decoration: none;
 }
 
-.app-brand:hover {
-  color: #146c43;
+.app-brand:hover,
+.app-brand:focus {
+  color: #ffffff;
 }
 
 .brand-logo {
-  width: 36px;
-  height: 36px;
-  object-fit: contain;
+  width: 38px;
+  height: 38px;
+
   flex-shrink: 0;
+  object-fit: contain;
 }
 
-.app-nav-links {
-  gap: 0.25rem;
+ion-button {
+  --color: #ffffff;
+  --border-radius: 0.65rem;
+
+  width: 48px;
+  height: 48px;
 }
 
-.app-nav-links .nav-link {
-  min-height: 44px;
-
-  display: flex;
-  align-items: center;
-
-  padding: 0.55rem 0.85rem;
-
-  border-radius: 0.65rem;
-
-  color: #495057;
-
-  font-weight: 600;
+ion-button::part(native) {
+  min-width: 48px;
+  min-height: 48px;
 }
 
-.app-nav-links .nav-link:hover {
-  background: #f8f9fa;
-  color: #146c43;
+ion-icon {
+  font-size: 24px;
 }
 
-.app-nav-links .nav-link.active {
-  background: #e9f7ef;
-  color: #146c43;
+ion-popover {
+  --width: 220px;
 }
 
-.app-brand:focus-visible,
-.app-nav-links .nav-link:focus-visible,
-.navbar-toggler:focus-visible {
-  outline: 3px solid rgba(25, 135, 84, 0.28);
-  outline-offset: 2px;
+ion-popover ion-content {
+  --background: #ffffff;
 }
 
-.navbar-toggler {
-  min-width: 44px;
-  min-height: 44px;
+ion-popover ion-item {
+  --min-height: 52px;
+  --color: #212529;
+}
 
-  border-color: #ced4da;
-  border-radius: 0.65rem;
+ion-popover ion-item ion-icon {
+  color: #0e4b2e;
 }
 
 .app-content {
-  padding-bottom: calc(
+  width: 100%;
+  max-width: 1200px;
+
+  margin: 0 auto;
+
+  padding: 1.5rem 1.25rem calc(
     2rem + env(safe-area-inset-bottom)
   );
 }
 
 @media (max-width: 575.98px) {
-  .app-navbar {
-    margin-left: -4px;
-    margin-right: -4px;
-    margin-bottom: 1rem;
-  }
-
-  .app-navbar .container-fluid {
-    min-height: 60px;
-    padding-left: 0.75rem;
-    padding-right: 0.75rem;
+  .brand-toolbar {
+    --min-height: 64px;
   }
 
   .app-brand {
-    max-width: calc(100% - 60px);
-    margin-right: 0.5rem;
+    max-width: calc(100% - 68px);
+
+    margin-left: 0.75rem;
 
     font-size: 1rem;
   }
 
   .brand-logo {
-  width: 34px;
-  height: 34px;
+    width: 36px;
+    height: 36px;
   }
 
-  .navbar-collapse {
-    padding-top: 0.65rem;
-    padding-bottom: 0.35rem;
-
-    border-top: 1px solid #e9ecef;
-    margin-top: 0.55rem;
-  }
-
-  .app-nav-links {
-    gap: 0.35rem;
-  }
-
-  .app-nav-links .nav-link {
-    min-height: 48px;
-    padding-left: 0.85rem;
-    padding-right: 0.85rem;
+  .app-content {
+    padding: 1rem 0.75rem calc(
+      1.5rem + env(safe-area-inset-bottom)
+    );
   }
 }
 </style>
