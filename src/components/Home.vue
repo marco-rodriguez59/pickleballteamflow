@@ -949,6 +949,9 @@ export default {
   .game-summary span {
     font-size: 0.68rem;
   }
+}
+
+.section-eyebrow {
   .section-eyebrow {
   font-size: 0.72rem;
   font-weight: 700;
