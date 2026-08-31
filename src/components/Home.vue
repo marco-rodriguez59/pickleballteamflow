@@ -522,7 +522,7 @@
 
   </div>
 </section>
-    <!-- Sub-out modal -->
+    
 <!-- Substitution modal -->
 <div
   v-if="subModal.show"
