@@ -1304,10 +1304,11 @@ export default {
     padding: 0.75rem;
   }
 
-  .player-row {
-    min-height: 52px;
-    font-size: 1.05rem;
-  }
+.player-row {
+  min-height: 52px;
+  font-size: 1.05rem;
+}
+}
   .sub-modal-box {
   background: #fff;
   border-radius: 1rem;
