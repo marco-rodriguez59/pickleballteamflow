@@ -20,7 +20,7 @@
       </div>
     </nav>
 
-    <<div class="container">
+    <div class="container">
   <router-view v-slot="{ Component }">
     <keep-alive>
       <component :is="Component" />
