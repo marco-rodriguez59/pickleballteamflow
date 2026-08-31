@@ -20,13 +20,13 @@
       </div>
     </nav>
 
-    <div class="container">
-      <router-view v-slot="{ Component }">
-  <keep-alive>
-    <component :is="Component" />
-  </keep-alive>
-</router-view>
-    </div>
+    <<div class="container">
+  <router-view v-slot="{ Component }">
+    <keep-alive>
+      <component :is="Component" />
+    </keep-alive>
+  </router-view>
+</div>
   </div>
 </template>
 
