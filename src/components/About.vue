@@ -113,7 +113,7 @@
         <hr>
 
         <div class="d-flex flex-column flex-sm-row justify-content-between gap-1 text-secondary">
-          <small>Version 3.0</small>
+          <small>Version {{ appVersion }}</small>
           <small>© 2026 Pickleball Team Flow. All rights reserved.</small>
         </div>
       </div>
@@ -123,7 +123,12 @@
 
 <script>
 export default {
-  name: 'About'
+  name: 'About',
+  data() {
+    return {
+      appVersion: __APP_VERSION__
+    };
+  }
 };
 </script>
 
