@@ -60,7 +60,15 @@
           <li>Optional player numbers for easier court organization</li>
           <li>Camera-assisted player-name entry</li>
         </ul>
-
+        
+        <h5 class="card-title mt-4">Privacy</h5>
+        <p class="mb-4">
+          Pickleball Team Flow does not require an account. Player names and photos
+          used for name scanning are processed within the app and are not uploaded
+          to a Pickleball Team Flow server. Photos are used only to recognize player
+          names and are not stored by Pickleball Team Flow.
+        </p>
+        
         <h5 class="card-title mt-4">Development Team</h5>
         <div class="mb-4">
           <div class="row g-1 mb-3">
