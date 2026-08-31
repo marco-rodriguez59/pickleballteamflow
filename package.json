@@ -1,7 +1,7 @@
 {
   "name": "pickleball-team-flow",
   "version": "1.0.0",
-  "description": "Group randomizer app for pickleball court assignments",
+  "description": "Create fair pickleball court assignments, player rotations, and doubles matchups across multiple courts and rounds."
   "scripts": {
     "dev": "vite",
     "build": "vite build && npm run copy",
