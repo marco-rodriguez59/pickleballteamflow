@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h1 class="text-center text-body mb-4 page-title">🏓Pickleball Court Assignments</h1>
+    <h1 class="text-center text-body mb-4 page-title">🏓 Pickleball Court Assignments</h1>
     
     <div>
       <div class="row">
@@ -35,7 +35,7 @@
       <div class="row">
         <div class="col-12 col-sm-6">
           <div class="form-floating">
-            <select class="form-select form-control mb-3" id="courts" v-model="courtCount" aria-label="Court(s)">
+            <select class="form-select form-control mb-3" id="courts" v-model="courtCount" aria-label="Number of Courts">
               <option value="2">2</option>
               <option value="3">3</option>
               <option value="4">4</option>
@@ -48,12 +48,12 @@
               <option value="11">11</option>
               <option value="12">12</option>
             </select>
-            <label for="courts">Court(s)</label>
+            <label for="courts">Number of Courts</label>
           </div>
         </div>
         <div class="col-12 col-sm-6">
           <div class="form-floating">
-            <select class="form-select form-control mb-3" id="numRounds" v-model="roundCount" aria-label="Round(s)">
+            <select class="form-select form-control mb-3" id="numRounds" v-model="roundCount" aria-label="Number of Rounds">
               <option value="1">1</option>
               <option value="2">2</option>
               <option value="3">3</option>
@@ -67,7 +67,7 @@
               <option value="11">11</option>
               <option value="12">12</option>
             </select>
-            <label for="numRounds">Round(s)</label>
+            <label for="numRounds">Number of Rounds</label>
           </div>
         </div>
       </div>
@@ -110,14 +110,14 @@
     
     <div id="message" class="mt-3"></div>
     
-    <div class="mt-3 d-flex align-items-center gap-2">
+    <div class="mt-3 d-flex flex-column flex-sm-row align-items-sm-center gap-1 gap-sm-2">
       <h2 class="h5 m-0">Court Assignments</h2>
       <span v-if="schedule.length" class="small text-secondary">
         {{ schedule.length }} round{{ schedule.length===1?'':'s' }} generated
       </span>
     </div>
     
-    <div class="row">
+    <div class="row mt-2">
       <div class="col">
         <div class="form-check form-check-inline">
           <input class="form-check-input small" type="checkbox" id="showNumbers" v-model="showNumbers">
@@ -296,7 +296,7 @@ export default {
     },
     generate() {
       if (!this.players || this.players.length < 8 || this.players.length > 24) {
-        this.showMessage('Please enter between 8 - 24 people names.');
+        this.showMessage('Please enter between 8 and 24 player names.');
         return;
       }
 
@@ -306,7 +306,7 @@ export default {
       }
 
       if (!this.roundCount || this.roundCount < 1) {
-        this.showMessage('Please enter a valid number of rounds (at least 1).');
+        this.showMessage('Please select a valid number of courts.');
         return;
       }
 
@@ -450,7 +450,7 @@ export default {
       });
 
       this.schedule = newSchedule;
-      this.showMessage('Successfully regenerated open rounds with current roster!', 'alert alert-success');
+      this.showMessage('Successfully regenerated open rounds with the current player roster!', 'alert alert-success');
     }
   }
 };
