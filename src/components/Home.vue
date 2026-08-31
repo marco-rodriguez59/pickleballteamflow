@@ -342,7 +342,7 @@ export default {
         rounds.push(round);
       }
 
-      this.showMessage('Successfully generated ' + this.roundCount + ' rounds of randomized groups!', 'alert alert-success');
+      this.showMessage('Successfully generated ' + this.roundCount + ' rounds of court assignments!', 'alert alert-success');
       this.schedule = rounds;
     },
     clearAll() {
