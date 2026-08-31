@@ -1199,6 +1199,128 @@ export default {
 .court-players {
   padding: 0.45rem;
 }
+  .assignment-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.view-toggle .btn {
+  min-height: 44px;
+  min-width: 76px;
+  font-weight: 600;
+}
+
+.vs-matchup {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: stretch;
+  gap: 0.75rem;
+  padding: 0.75rem;
+}
+
+.vs-team {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.vs-team-label {
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #6c757d;
+  margin-bottom: 0.1rem;
+}
+
+.vs-player {
+  min-height: 50px;
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+
+  padding: 0.65rem 0.7rem;
+
+  border: 1px solid #dee2e6;
+  border-radius: 0.65rem;
+
+  background: #fff;
+  color: #212529;
+
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: left;
+}
+
+.vs-player:not(:disabled):hover {
+  background: #f8f9fa;
+  border-color: #adb5bd;
+}
+
+.vs-player:focus-visible {
+  outline: 3px solid rgba(25, 135, 84, 0.25);
+  outline-offset: 2px;
+}
+
+.vs-divider {
+  align-self: center;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 42px;
+  height: 42px;
+
+  border-radius: 50%;
+  background: #e9f7ef;
+  color: #146c43;
+
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+@media (max-width: 575.98px) {
+  .assignment-controls {
+    width: 100%;
+    align-items: stretch;
+  }
+
+  .view-toggle {
+    width: 100%;
+  }
+
+  .view-toggle .btn {
+    flex: 1;
+  }
+
+  .player-number-toggle {
+    justify-content: flex-start;
+  }
+
+  .vs-matchup {
+    gap: 0.4rem;
+    padding: 0.6rem;
+  }
+
+  .vs-divider {
+    width: 34px;
+    height: 34px;
+    font-size: 0.7rem;
+  }
+
+  .vs-player {
+    min-height: 52px;
+    padding: 0.55rem;
+    font-size: 1rem;
+  }
+}
 
 .player-row {
   width: 100%;
