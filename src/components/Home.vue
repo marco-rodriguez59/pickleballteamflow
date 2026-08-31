@@ -482,12 +482,20 @@ export default {
   align-items: center;
   justify-content: center;
   z-index: 1050;
+
+  padding-top: calc(16px + env(safe-area-inset-top));
+  padding-right: calc(16px + env(safe-area-inset-right));
+  padding-bottom: calc(16px + env(safe-area-inset-bottom));
+  padding-left: calc(16px + env(safe-area-inset-left));
 }
+
 .sub-modal-box {
   background: #fff;
-  border-radius: 8px;
+  border-radius: 12px;
   padding: 1.5rem;
-  max-width: 360px;
-  width: 90%;
+  max-width: 420px;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
 }
 </style>
