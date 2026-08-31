@@ -49,5 +49,8 @@
 	<string>This app needs photo library access to select images for scanning</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>This app needs permission to save court assignment images to your photo library</string>
+
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 </dict>
 </plist>
