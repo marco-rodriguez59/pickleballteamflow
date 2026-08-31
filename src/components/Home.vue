@@ -301,7 +301,7 @@ export default {
       }
 
       if (!this.courtCount || this.courtCount < 1) {
-        this.showMessage('Please enter a valid number of courts.');
+        this.showMessage('Please select a valid number of courts.');
         return;
       }
 
