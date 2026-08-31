@@ -14,6 +14,7 @@
               class="brand-logo"
               aria-hidden="true"
             >
+
             <span>Pickleball Team Flow</span>
           </router-link>
 
@@ -31,6 +32,19 @@
         </ion-toolbar>
       </ion-header>
 
+      <ion-content
+        class="app-content"
+        :fullscreen="false"
+      >
+        <div class="page-container">
+          <router-view v-slot="{ Component }">
+            <keep-alive>
+              <component :is="Component" />
+            </keep-alive>
+          </router-view>
+        </div>
+      </ion-content>
+
       <ion-popover
         trigger="main-menu-trigger"
         trigger-action="click"
@@ -38,40 +52,40 @@
       >
         <ion-content>
           <ion-list lines="none">
-            <ion-item
-              button
-              router-link="/"
-              router-direction="root"
+            <router-link
+              to="/"
+              class="menu-link"
             >
-              <ion-icon
-                :icon="homeOutline"
-                slot="start"
-              />
-              <ion-label>Home</ion-label>
-            </ion-item>
+              <ion-item button detail="false">
+                <ion-icon
+                  :icon="homeOutline"
+                  slot="start"
+                />
 
-            <ion-item
-              button
-              router-link="/about"
-              router-direction="forward"
+                <ion-label>
+                  Home
+                </ion-label>
+              </ion-item>
+            </router-link>
+
+            <router-link
+              to="/about"
+              class="menu-link"
             >
-              <ion-icon
-                :icon="informationCircleOutline"
-                slot="start"
-              />
-              <ion-label>About</ion-label>
-            </ion-item>
+              <ion-item button detail="false">
+                <ion-icon
+                  :icon="informationCircleOutline"
+                  slot="start"
+                />
+
+                <ion-label>
+                  About
+                </ion-label>
+              </ion-item>
+            </router-link>
           </ion-list>
         </ion-content>
       </ion-popover>
-
-      <main class="app-content">
-        <router-view v-slot="{ Component }">
-          <keep-alive>
-            <component :is="Component" />
-          </keep-alive>
-        </router-view>
-      </main>
     </div>
   </ion-app>
 </template>
@@ -89,13 +103,13 @@ import {
   IonList,
   IonPopover,
   IonToolbar
-} from '@ionic/vue'
+} from '@ionic/vue';
 
 import {
   homeOutline,
   informationCircleOutline,
   menuOutline
-} from 'ionicons/icons'
+} from 'ionicons/icons';
 
 export default {
   name: 'App',
@@ -119,19 +133,21 @@ export default {
       homeOutline,
       informationCircleOutline,
       menuOutline
-    }
+    };
   }
-}
+};
 </script>
 
 <style scoped>
 .app-shell {
-  min-height: 100%;
+  height: 100%;
   background: #f5f5f5;
 }
 
 .app-header {
-  box-shadow: 0 2px 10px rgba(14, 75, 46, 0.18);
+  box-shadow:
+    0 2px 10px
+    rgba(14, 75, 46, 0.18);
 }
 
 .brand-toolbar {
@@ -140,13 +156,17 @@ export default {
   --border-width: 0;
   --min-height: 68px;
 
-  padding-left: env(safe-area-inset-left);
-  padding-right: env(safe-area-inset-right);
+  padding-left:
+    env(safe-area-inset-left);
+
+  padding-right:
+    env(safe-area-inset-right);
 }
 
 .app-brand {
   display: inline-flex;
   align-items: center;
+
   gap: 0.65rem;
 
   margin-left: 1rem;
@@ -169,10 +189,11 @@ export default {
   height: 38px;
 
   flex-shrink: 0;
+
   object-fit: contain;
 }
 
-ion-button {
+.brand-toolbar ion-button {
   --color: #ffffff;
   --border-radius: 0.65rem;
 
@@ -180,13 +201,35 @@ ion-button {
   height: 48px;
 }
 
+.brand-toolbar
 ion-button::part(native) {
   min-width: 48px;
   min-height: 48px;
 }
 
-ion-icon {
+.brand-toolbar ion-icon {
   font-size: 24px;
+}
+
+.app-content {
+  --background: #f5f5f5;
+}
+
+.page-container {
+  width: 100%;
+  max-width: 1200px;
+
+  min-height: 100%;
+
+  margin: 0 auto;
+
+  padding:
+    1.5rem
+    1.25rem
+    calc(
+      2rem +
+      env(safe-area-inset-bottom)
+    );
 }
 
 ion-popover {
@@ -200,21 +243,24 @@ ion-popover ion-content {
 ion-popover ion-item {
   --min-height: 52px;
   --color: #212529;
+  --background: #ffffff;
+}
+
+ion-popover ion-item:hover {
+  --background: #f5f7f6;
 }
 
 ion-popover ion-item ion-icon {
   color: #0e4b2e;
+
+  font-size: 22px;
 }
 
-.app-content {
-  width: 100%;
-  max-width: 1200px;
+.menu-link {
+  display: block;
 
-  margin: 0 auto;
-
-  padding: 1.5rem 1.25rem calc(
-    2rem + env(safe-area-inset-bottom)
-  );
+  color: inherit;
+  text-decoration: none;
 }
 
 @media (max-width: 575.98px) {
@@ -223,7 +269,8 @@ ion-popover ion-item ion-icon {
   }
 
   .app-brand {
-    max-width: calc(100% - 68px);
+    max-width:
+      calc(100% - 68px);
 
     margin-left: 0.75rem;
 
@@ -235,10 +282,14 @@ ion-popover ion-item ion-icon {
     height: 36px;
   }
 
-  .app-content {
-    padding: 1rem 0.75rem calc(
-      1.5rem + env(safe-area-inset-bottom)
-    );
+  .page-container {
+    padding:
+      1rem
+      0.75rem
+      calc(
+        1.5rem +
+        env(safe-area-inset-bottom)
+      );
   }
 }
 </style>
