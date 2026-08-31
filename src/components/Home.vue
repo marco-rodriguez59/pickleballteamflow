@@ -72,18 +72,37 @@
         </div>
       </div>
 
-      <div class="row">
-        <div class="col">
-          <button class="btn btn-secondary mt-2" @click="clearAll()">🗑️ Clear Results</button>
-          <button v-if="schedule.length && hasOpenRounds" class="btn btn-warning ms-2 mt-2" @click="regenerateRemaining()">
-            🔄 Regenerate Open Rounds
-          </button>
-        </div>
-        <div class="col">
-          <button class="btn btn-primary float-end mt-2" @click="generate()">🎲 Generate Random Groups</button>
-        </div>
-      </div>
+     <div class="row g-2 mt-1">
+  <div class="col-12 col-md">
+    <div class="d-grid d-sm-flex gap-2">
+      <button
+        class="btn btn-secondary"
+        @click="clearAll()"
+      >
+        🗑️ Clear Results
+      </button>
+
+      <button
+        v-if="schedule.length && hasOpenRounds"
+        class="btn btn-warning"
+        @click="regenerateRemaining()"
+      >
+        🔄 Regenerate Open Rounds
+      </button>
     </div>
+  </div>
+
+  <div class="col-12 col-md-auto">
+    <div class="d-grid">
+      <button
+        class="btn btn-primary"
+        @click="generate()"
+      >
+        🎲 Generate Random Groups
+      </button>
+    </div>
+  </div>
+</div>
     
     <div class="small text-secondary mt-2">
       Capacity: {{ courtCount * 4 }} &middot; Active Players: {{ players.length }}
