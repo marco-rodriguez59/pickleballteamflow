@@ -11,7 +11,12 @@
           class="navbar-brand app-brand"
           aria-label="Pickleball Team Flow home"
         >
-          <span class="brand-icon" aria-hidden="true">🏓</span>
+          <img
+          src="./assets/pickleball-team-flow-mark.png"
+          alt=""
+          class="brand-logo"
+          aria-hidden="true"
+          > 
           <span>Pickleball Team Flow</span>
         </router-link>
 
@@ -111,9 +116,11 @@ export default {
   color: #146c43;
 }
 
-.brand-icon {
-  font-size: 1.25rem;
-  line-height: 1;
+.brand-logo {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 .app-nav-links {
@@ -186,8 +193,9 @@ export default {
     font-size: 1rem;
   }
 
-  .brand-icon {
-    font-size: 1.15rem;
+  .brand-logo {
+  width: 34px;
+  height: 34px;
   }
 
   .navbar-collapse {
