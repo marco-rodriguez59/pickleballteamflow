@@ -285,16 +285,15 @@ export default {
           this.showMessage('No text found in image. Please try a clearer photo.', 'alert alert-warning');
         }
       } catch (error) {
-  console.error('OCR Error:', error);
+        console.error('OCR Error:', error);
 
-  this.showMessage(
-    'Unable to read names from that image. Please try another photo or enter the player names manually.',
-    'alert alert-danger'
-  );
-}finally {
+        this.showMessage(
+          'Unable to read names from that image. Please try another photo or enter the player names manually.',
+          'alert alert-danger'
+        );
+      } finally {
         this.isProcessing = false;
         this.ocrProgress = '';
-        // Reset file input
         event.target.value = '';
       }
     },
