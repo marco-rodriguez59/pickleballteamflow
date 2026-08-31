@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h1 class="text-center text-body mb-4">🎲 Group Randomizer App</h1>
+    <h1 class="text-center text-body mb-4 page-title">🏓Pickleball Court Assignments</h1>
     
     <div>
       <div class="row">
@@ -457,6 +457,9 @@ export default {
 </script>
 
 <style scoped>
+  .page-title {
+  font-size: clamp(1.5rem, 5vw, 2.5rem);
+}
 .clickable-player {
   cursor: pointer;
   border-radius: 4px;
