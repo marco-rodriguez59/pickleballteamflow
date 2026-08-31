@@ -952,7 +952,6 @@ export default {
 }
 
 .section-eyebrow {
-  .section-eyebrow {
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.11em;
