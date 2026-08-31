@@ -62,18 +62,34 @@
         </ul>
         
         <h5 class="card-title mt-4">Privacy</h5>
-        <p class="mb-4">
-          Pickleball Team Flow does not require an account. Player names and photos
-          used for name scanning are processed within the app and are not uploaded
-          to a Pickleball Team Flow server. Photos are used only to recognize player
-          names and are not stored by Pickleball Team Flow.
-        </p>
-        
-        <h5 class="card-title mt-4">Support</h5>
-        <p class="mb-4">
-          Need help or have feedback? Visit our support page for assistance,
-          troubleshooting, and contact information.
-        </p>
+<p class="mb-4">
+  Pickleball Team Flow does not require an account. Player names and photos
+  used for name scanning are processed within the app and are not uploaded
+  to a Pickleball Team Flow server. Photos are used only to recognize player
+  names and are not stored by Pickleball Team Flow.
+  <br>
+  <a
+    href="https://marco-rodriguez59.github.io/pickleballteamflow/privacy.html"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    View Privacy Policy
+  </a>
+</p>
+
+<h5 class="card-title mt-4">Support</h5>
+<p class="mb-4">
+  Need help or have feedback? Visit our support page for assistance,
+  troubleshooting, and contact information.
+  <br>
+  <a
+    href="https://marco-rodriguez59.github.io/pickleballteamflow/support.html"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    Visit Support
+  </a>
+</p>
         
         <h5 class="card-title mt-4">Development Team</h5>
         <div class="mb-4">
