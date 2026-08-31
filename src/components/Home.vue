@@ -337,7 +337,73 @@
                 </h4>
               </div>
 
-              <div class="court-players">
+              <div
+                 v-if="courtView === 'list'"
+                  class="court-players"
+              >
+                <div
+  v-else
+  class="vs-matchup"
+>
+  <div class="vs-team">
+    <div class="vs-team-label">Team 1</div>
+
+    <button
+      v-for="player in court.players.slice(0, 2)"
+      :key="player.id"
+      type="button"
+      class="vs-player"
+      :disabled="round.closed || round.sitOut.length === 0"
+      @click="
+        !round.closed &&
+        round.sitOut.length > 0 &&
+        openSubModal(round, court, player)
+      "
+    >
+      <span
+        v-if="showNumbers"
+        class="player-number"
+      >
+        {{ player.id }}
+      </span>
+
+      <span>{{ player.name }}</span>
+    </button>
+  </div>
+
+  <div
+    class="vs-divider"
+    aria-hidden="true"
+  >
+    VS
+  </div>
+
+  <div class="vs-team">
+    <div class="vs-team-label">Team 2</div>
+
+    <button
+      v-for="player in court.players.slice(2, 4)"
+      :key="player.id"
+      type="button"
+      class="vs-player"
+      :disabled="round.closed || round.sitOut.length === 0"
+      @click="
+        !round.closed &&
+        round.sitOut.length > 0 &&
+        openSubModal(round, court, player)
+      "
+    >
+      <span
+        v-if="showNumbers"
+        class="player-number"
+      >
+        {{ player.id }}
+      </span>
+
+      <span>{{ player.name }}</span>
+    </button>
+  </div>
+</div>
 
                 <button
                   v-for="player in court.players"
