@@ -204,84 +204,221 @@
     
     <div id="message" class="mt-3"></div>
     
-    <div class="mt-3 d-flex flex-column flex-sm-row align-items-sm-center gap-1 gap-sm-2">
-      <h2 class="h5 m-0">Court Assignments</h2>
-      <span v-if="schedule.length" class="small text-secondary">
-        {{ schedule.length }} round{{ schedule.length===1?'':'s' }} generated
-      </span>
-    </div>
-    
-    <div class="row mt-2">
-      <div class="col">
-        <div class="form-check form-check-inline">
-          <input class="form-check-input small" type="checkbox" id="showNumbers" v-model="showNumbers">
-          <label class="form-check-label small" for="showNumbers">Show player numbers</label>
-        </div>
+<section class="assignments-section mt-4">
+
+  <div class="assignments-heading mb-3">
+    <div>
+      <div class="section-eyebrow">YOUR GAME</div>
+
+      <div class="d-flex flex-column flex-sm-row align-items-sm-end gap-1 gap-sm-2">
+        <h2 class="assignments-title mb-0">Court Assignments</h2>
+
+        <span v-if="schedule.length" class="round-count-text">
+          {{ schedule.length }} round{{ schedule.length === 1 ? '' : 's' }}
+        </span>
       </div>
     </div>
 
-    <div v-if="!schedule.length" class="card card-rounded shadow-sm mt-2 p-4 text-center text-secondary border border-dashed">
-      Enter at least <strong>8 players</strong> and select <em>Generate Court Assignments</em> to get started.
+    <div class="form-check player-number-toggle mt-2 mt-sm-0">
+      <input
+        class="form-check-input"
+        type="checkbox"
+        id="showNumbers"
+        v-model="showNumbers"
+      >
+      <label class="form-check-label" for="showNumbers">
+        Show player numbers
+      </label>
     </div>
+  </div>
 
-    <div class="round" v-if="schedule.length > 0">
-      <div class="row">
-        <div class="col-md-6" v-show="!round.closed" v-for="round in schedule" :key="round.index">
-          <div class="card card-rounded shadow-sm mb-3">
-            <div class="card-header round-header" :class="{closed: round.closed}">
-              <div class="d-flex justify-content-between align-items-center">
-                <h3 class="m-0">Round {{ round.index }}</h3>
-                <button 
-                  class="btn btn-sm btn-close-round" 
-                  :class="round.closed ? 'btn-outline-secondary' : 'btn-success'"
-                  data-bs-toggle="collapse"
-                  :data-bs-target="'#round-' + round.index"
-                  @click="toggleRoundClosed(round)"
+  <div
+    v-if="!schedule.length"
+    class="empty-assignments text-center"
+  >
+    <div class="empty-icon" aria-hidden="true">🏓</div>
+
+    <h3 class="h5 mb-2">Ready when you are</h3>
+
+    <p class="text-secondary mb-0">
+      Enter at least <strong>8 players</strong>, choose your courts and rounds,
+      then select <strong>Generate Court Assignments</strong>.
+    </p>
+  </div>
+
+  <div v-if="schedule.length > 0" class="rounds-list">
+
+    <article
+      v-for="round in schedule"
+      :key="round.index"
+      class="round-card card shadow-sm mb-3"
+    >
+      <div
+        class="round-card-header"
+        :class="{ 'round-closed': round.closed }"
+      >
+        <div>
+          <div class="round-label">
+            ROUND
+          </div>
+
+          <h3 class="round-title mb-0">
+            Round {{ round.index }}
+          </h3>
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+          <span
+            class="round-status"
+            :class="round.closed ? 'round-status-closed' : 'round-status-open'"
+          >
+            {{ round.closed ? 'Completed' : 'Open' }}
+          </span>
+
+          <button
+            class="btn round-close-button"
+            :class="round.closed ? 'btn-outline-secondary' : 'btn-outline-success'"
+            data-bs-toggle="collapse"
+            :data-bs-target="'#round-' + round.index"
+            @click="toggleRoundClosed(round)"
+          >
+            {{ round.closed ? '↻ Reopen' : '✓ Close Round' }}
+          </button>
+        </div>
+      </div>
+
+      <div
+        :id="'round-' + round.index"
+        class="collapse"
+        :class="{ show: !round.closed }"
+      >
+        <div class="card-body round-card-body">
+
+          <div class="courts-grid">
+
+            <div
+              v-for="court in round.courts"
+              :key="court.courtNumber"
+              class="court-card"
+            >
+              <div class="court-card-header">
+                <span class="court-icon" aria-hidden="true">🏓</span>
+
+                <h4 class="court-title mb-0">
+                  Court {{ court.courtNumber }}
+                </h4>
+              </div>
+
+              <div class="court-players">
+
+                <button
+                  v-for="player in court.players"
+                  :key="player.id"
+                  type="button"
+                  class="player-row"
+                  :class="{
+                    'player-row-substitutable':
+                      !round.closed && round.sitOut.length > 0
+                  }"
+                  :disabled="round.closed || round.sitOut.length === 0"
+                  :aria-label="
+                    !round.closed && round.sitOut.length > 0
+                      ? 'Substitute ' + player.name
+                      : player.name
+                  "
+                  @click="
+                    !round.closed &&
+                    round.sitOut.length > 0 &&
+                    openSubModal(round, court, player)
+                  "
                 >
-                  {{ round.closed ? '↻ Reopen' : '✓ Close' }}
+                  <span class="player-name">
+                    <span
+                      v-if="showNumbers"
+                      class="player-number"
+                    >
+                      {{ player.id }}
+                    </span>
+
+                    {{ player.name }}
+                  </span>
+
+                  <span
+                    v-if="!round.closed && round.sitOut.length > 0"
+                    class="swap-indicator"
+                    aria-hidden="true"
+                  >
+                    ↕
+                  </span>
                 </button>
+
               </div>
             </div>
-            <div :id="'round-' + round.index" class="collapse" :class="{show: !round.closed}">
-              <div class="card-body">
-                <div class="groups-container" v-for="court in round.courts" :key="court.courtNumber">
-                  <div class="group regular">
-                    <h4>Court {{ court.courtNumber }}</h4>
-                    <div class="card">
-                      <div class="card-body">
-                        <ul>
-                          <li
-                            v-for="player in court.players"
-                            :key="player.id"
-                            :class="{ 'clickable-player': !round.closed && round.sitOut.length > 0 }"
-                            :title="!round.closed && round.sitOut.length > 0 ? 'Click to sub out ' + player.name : ''"
-                            @click="!round.closed && round.sitOut.length > 0 && openSubModal(round, court, player)"
-                          >
-                            {{ showNumbers ? '(' + player.id + ') ' : '' }}{{ player.name }}
-                            <span v-if="!round.closed && round.sitOut.length > 0" class="sub-out-badge">↕</span>
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
+
+          </div>
+
+          <div
+            v-if="round.courts.length < courtCount"
+            class="idle-courts mt-3"
+          >
+            <span aria-hidden="true">ℹ️</span>
+
+            {{ courtCount - round.courts.length }}
+            court{{ courtCount - round.courts.length === 1 ? '' : 's' }}
+            idle this round.
+          </div>
+
+          <div
+            v-if="round.sitOut.length"
+            class="sit-out-card mt-3"
+          >
+            <div class="sit-out-heading">
+              <div>
+                <div class="sit-out-label">
+                  THIS ROUND
                 </div>
-                <div v-if="round.courts.length < courtCount" class="alert alert-light border mt-3">
-                  {{ courtCount - round.courts.length }} court(s) idle this round.
-                </div>
-                <div v-if="round.sitOut.length" class="bg-warning-subtle mt-3 p-3">
-                  <h4>Sit Out</h4>
-                  <div>
-                    <span v-for="(player, index) in round.sitOut" :key="player.id">
-                      {{ showNumbers ? '(' + player.id + ') ' : '' }}{{ player.name }}<span v-if="index < round.sitOut.length - 1">, </span>
-                    </span>
-                  </div>
-                </div>
+
+                <h4 class="sit-out-title mb-0">
+                  Sit Out
+                </h4>
               </div>
+
+              <span class="sit-out-count">
+                {{ round.sitOut.length }}
+              </span>
+            </div>
+
+            <div class="sit-out-players">
+              <span
+                v-for="player in round.sitOut"
+                :key="player.id"
+                class="sit-out-player"
+              >
+                <span
+                  v-if="showNumbers"
+                  class="sit-out-player-number"
+                >
+                  {{ player.id }}
+                </span>
+
+                {{ player.name }}
+              </span>
+            </div>
+
+            <div
+              v-if="!round.closed"
+              class="sit-out-help"
+            >
+              Tap a player on a court to make a substitution.
             </div>
           </div>
+
         </div>
       </div>
-    </div>
+    </article>
+
+  </div>
+</section>
     <!-- Sub-out modal -->
     <div v-if="subModal.show" class="sub-modal-overlay" @click.self="closeSubModal">
       <div class="sub-modal-box shadow-lg">
@@ -736,6 +873,363 @@ export default {
 
   .game-summary span {
     font-size: 0.68rem;
+  }
+  .section-eyebrow {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  color: #198754;
+}
+
+.assignments-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
+}
+
+.assignments-title {
+  font-size: clamp(1.4rem, 4vw, 2rem);
+  font-weight: 700;
+}
+
+.round-count-text {
+  font-size: 0.9rem;
+  color: #6c757d;
+  padding-bottom: 0.15rem;
+}
+
+.player-number-toggle {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.player-number-toggle .form-check-input {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: 0;
+}
+
+.player-number-toggle .form-check-label {
+  font-size: 0.95rem;
+}
+
+.empty-assignments {
+  border: 2px dashed #ced4da;
+  border-radius: 1rem;
+  padding: 2.5rem 1.25rem;
+  background: #fff;
+}
+
+.empty-icon {
+  font-size: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+.round-card {
+  border: 0;
+  border-radius: 1rem;
+  overflow: hidden;
+}
+
+.round-card-header {
+  min-height: 72px;
+  padding: 1rem 1.1rem;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.round-card-header.round-closed {
+  background: #f1f3f5;
+}
+
+.round-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #6c757d;
+}
+
+.round-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.round-status {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.3rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.round-status-open {
+  background: #e9f7ef;
+  color: #146c43;
+}
+
+.round-status-closed {
+  background: #e9ecef;
+  color: #495057;
+}
+
+.round-close-button {
+  min-height: 44px;
+  border-radius: 0.65rem;
+  font-weight: 600;
+}
+
+.round-card-body {
+  padding: 1rem;
+}
+
+.courts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.court-card {
+  border: 1px solid #dee2e6;
+  border-radius: 0.875rem;
+  overflow: hidden;
+  background: #fff;
+}
+
+.court-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  padding: 0.8rem 1rem;
+
+  background: #e9f7ef;
+  border-bottom: 1px solid #d1e7dd;
+}
+
+.court-icon {
+  font-size: 1rem;
+}
+
+.court-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #146c43;
+}
+
+.court-players {
+  padding: 0.45rem;
+}
+
+.player-row {
+  width: 100%;
+  min-height: 48px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0.65rem 0.7rem;
+
+  border: 0;
+  border-radius: 0.6rem;
+
+  background: transparent;
+  color: #212529;
+
+  font-size: 1rem;
+  text-align: left;
+}
+
+.player-row + .player-row {
+  border-top: 1px solid #f1f3f5;
+}
+
+.player-row:disabled {
+  opacity: 1;
+  color: #212529;
+}
+
+.player-row-substitutable {
+  cursor: pointer;
+}
+
+.player-row-substitutable:hover,
+.player-row-substitutable:focus-visible {
+  background: #f0f8f4;
+}
+
+.player-row:focus-visible {
+  outline: 3px solid rgba(25, 135, 84, 0.25);
+  outline-offset: 1px;
+}
+
+.player-name {
+  font-weight: 600;
+}
+
+.player-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 28px;
+  height: 28px;
+
+  margin-right: 0.45rem;
+
+  border-radius: 50%;
+
+  background: #f1f3f5;
+  color: #495057;
+
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.swap-indicator {
+  margin-left: 0.5rem;
+
+  font-size: 1.1rem;
+  font-weight: 700;
+
+  color: #198754;
+}
+
+.idle-courts {
+  border: 1px solid #dee2e6;
+  border-radius: 0.75rem;
+
+  padding: 0.8rem 1rem;
+
+  background: #f8f9fa;
+
+  color: #495057;
+}
+
+.sit-out-card {
+  border: 1px solid #ffe69c;
+  border-radius: 0.875rem;
+
+  padding: 1rem;
+
+  background: #fff8e1;
+}
+
+.sit-out-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 0.75rem;
+}
+
+.sit-out-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+
+  color: #997404;
+}
+
+.sit-out-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+
+  color: #664d03;
+}
+
+.sit-out-count {
+  min-width: 32px;
+  height: 32px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #ffc107;
+  color: #212529;
+
+  font-weight: 700;
+}
+
+.sit-out-players {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.sit-out-player {
+  display: inline-flex;
+  align-items: center;
+
+  min-height: 40px;
+
+  padding: 0.45rem 0.7rem;
+
+  border: 1px solid #ffe69c;
+  border-radius: 999px;
+
+  background: #fff;
+
+  font-weight: 600;
+}
+
+.sit-out-player-number {
+  margin-right: 0.35rem;
+  color: #997404;
+  font-size: 0.8rem;
+}
+
+.sit-out-help {
+  margin-top: 0.75rem;
+
+  font-size: 0.85rem;
+  color: #664d03;
+}
+
+@media (max-width: 767.98px) {
+  .courts-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .assignments-heading {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .round-card-header {
+    align-items: flex-start;
+  }
+
+  .round-card-header > div:last-child {
+    flex-direction: column;
+    align-items: flex-end !important;
+  }
+
+  .round-close-button {
+    font-size: 0.85rem;
+  }
+
+  .round-card-body {
+    padding: 0.75rem;
+  }
+
+  .player-row {
+    min-height: 52px;
+    font-size: 1.05rem;
   }
 }
 </style>
