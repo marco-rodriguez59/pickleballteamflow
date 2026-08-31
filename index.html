@@ -55,7 +55,41 @@
         color: #1976d2;
     }
 
-    /* ...the rest of your existing CSS stays here... */
+    .group.bye h4 {
+    color: #f57c00;
+}
+
+.group ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.group li {
+    margin-bottom: 5px;
+}
+
+.results {
+    margin-bottom: 30px;
+    padding: 20px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    background: #fff;
+}
+
+.round-header h3::after {
+    content: " ✓";
+    color: #28a745;
+    font-weight: bold;
+    display: none;
+}
+
+.round-header.closed h3::after {
+    display: inline;
+}
+
+.btn-close-round {
+    font-size: 0.875rem;
+}
 
 </style>
 </head>
