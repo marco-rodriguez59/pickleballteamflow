@@ -242,12 +242,6 @@
       </ion-card>
     </section>
 
-    <!-- Existing message system intentionally preserved -->
-    <div
-      id="message"
-      class="mt-3"
-    ></div>
-
     <!-- =========================================================
          COURT ASSIGNMENTS
     ========================================================== -->
@@ -359,7 +353,6 @@
             'round-card-completed': round.closed
           }"
         >
-          <!-- Round Header -->
           <div class="round-card-header">
             <div class="round-heading">
               <div class="round-label">
@@ -416,7 +409,6 @@
             </div>
           </div>
 
-          <!-- Closed rounds stay visible but collapsed -->
           <div
             v-show="!round.closed"
             class="round-content"
@@ -437,9 +429,7 @@
                   </h4>
                 </div>
 
-                <!-- ===========================
-                     LIST VIEW
-                ============================ -->
+                <!-- LIST VIEW -->
                 <div
                   v-if="courtView === 'list'"
                   class="court-players"
@@ -497,9 +487,7 @@
                   </button>
                 </div>
 
-                <!-- ===========================
-                     VS VIEW
-                ============================ -->
+                <!-- VS VIEW -->
                 <div
                   v-else
                   class="vs-matchup"
@@ -677,7 +665,6 @@
             </div>
           </div>
 
-          <!-- Closed Round Summary -->
           <div
             v-if="round.closed"
             class="closed-round-summary"
@@ -697,112 +684,125 @@
     </section>
 
     <!-- =========================================================
-         SUBSTITUTION MODAL
-         Intentionally still custom until Checkpoint 8D
+         IONIC SUBSTITUTION MODAL
     ========================================================== -->
-    <div
-      v-if="subModal.show"
-      class="sub-modal-overlay"
-      role="presentation"
-      @click.self="closeSubModal"
+    <ion-modal
+      :is-open="subModal.show"
+      class="substitution-modal"
+      @didDismiss="closeSubModal"
     >
-      <div
-        class="sub-modal-box shadow-lg"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="subModalTitle"
-        aria-describedby="subModalDescription"
-      >
-        <div class="sub-modal-header">
-          <div>
-            <div class="sub-modal-eyebrow">
-              PLAYER SUBSTITUTION
+      <ion-content class="substitution-content">
+        <div class="sub-modal-shell">
+          <div class="sub-modal-header">
+            <div>
+              <div class="sub-modal-eyebrow">
+                PLAYER SUBSTITUTION
+              </div>
+
+              <h2 class="sub-modal-title">
+                Swap Player
+              </h2>
             </div>
 
-            <h2
-              id="subModalTitle"
-              class="sub-modal-title"
+            <ion-button
+              fill="clear"
+              color="medium"
+              class="sub-modal-close"
+              aria-label="Close substitution window"
+              @click="closeSubModal"
             >
-              Swap Player
-            </h2>
+              <ion-icon
+                :icon="closeOutline"
+                slot="icon-only"
+              />
+            </ion-button>
           </div>
 
-          <button
-            type="button"
-            class="btn sub-modal-close"
-            aria-label="Close substitution window"
-            @click="closeSubModal"
-          >
-            ✕
-          </button>
-        </div>
+          <div class="sub-current-player">
+            <div class="small text-secondary mb-1">
+              Replace
+            </div>
 
-        <div
-          id="subModalDescription"
-          class="sub-current-player"
-        >
-          <div class="small text-secondary mb-1">
-            Replace
+            <div class="sub-current-player-name">
+              {{ subModal.player?.name }}
+            </div>
+
+            <div class="small text-secondary mt-1">
+              Court {{ subModal.court?.courtNumber }} ·
+              Round {{ subModal.round?.index }}
+            </div>
           </div>
 
-          <div class="sub-current-player-name">
-            {{ subModal.player?.name }}
+          <div class="sub-instruction">
+            Choose a player who is currently sitting out:
           </div>
 
-          <div class="small text-secondary mt-1">
-            Court {{ subModal.court?.courtNumber }} ·
-            Round {{ subModal.round?.index }}
-          </div>
-        </div>
+          <div class="sub-player-list">
+            <button
+              v-for="p in subModal.round?.sitOut || []"
+              :key="p.id"
+              type="button"
+              class="sub-player-option"
+              @click="confirmSubstitution(p)"
+            >
+              <span class="sub-player-option-name">
+                <span
+                  v-if="showNumbers"
+                  class="player-number"
+                >
+                  {{ p.id }}
+                </span>
 
-        <div class="sub-instruction">
-          Choose a player who is currently sitting out:
-        </div>
-
-        <div class="sub-player-list">
-          <button
-            v-for="p in subModal.round?.sitOut || []"
-            :key="p.id"
-            type="button"
-            class="sub-player-option"
-            @click="confirmSubstitution(p)"
-          >
-            <span class="sub-player-option-name">
-              <span
-                v-if="showNumbers"
-                class="player-number"
-              >
-                {{ p.id }}
+                {{ p.name }}
               </span>
 
-              {{ p.name }}
+              <span class="sub-player-action">
+                Swap
+
+                <ion-icon
+                  :icon="arrowForwardOutline"
+                  aria-hidden="true"
+                />
+              </span>
+            </button>
+          </div>
+
+          <div class="sub-modal-note">
+            <ion-icon
+              :icon="informationCircleOutline"
+              aria-hidden="true"
+            />
+
+            <span>
+              {{ subModal.player?.name }}
+              will move to Sit Out for this round.
             </span>
+          </div>
 
-            <span class="sub-player-action">
-              Swap
-              <span aria-hidden="true">→</span>
-            </span>
-          </button>
-        </div>
-
-        <div class="sub-modal-note">
-          <span aria-hidden="true">ℹ️</span>
-
-          {{ subModal.player?.name }}
-          will move to Sit Out for this round.
-        </div>
-
-        <div class="d-grid mt-3">
-          <button
-            type="button"
-            class="btn btn-outline-secondary sub-cancel-button"
+          <ion-button
+            expand="block"
+            fill="outline"
+            color="medium"
+            class="sub-cancel-button"
             @click="closeSubModal"
           >
             Cancel
-          </button>
+          </ion-button>
         </div>
-      </div>
-    </div>
+      </ion-content>
+    </ion-modal>
+
+    <!-- =========================================================
+         IONIC TOAST
+    ========================================================== -->
+    <ion-toast
+      :is-open="toast.show"
+      :message="toast.message"
+      :color="toast.color"
+      :duration="toast.duration"
+      position="bottom"
+      @didDismiss="toast.show = false"
+    />
   </div>
 </template>
 
@@ -811,19 +811,24 @@ import {
   IonButton,
   IonCard,
   IonCardContent,
+  IonContent,
   IonIcon,
   IonLabel,
+  IonModal,
   IonSegment,
   IonSegmentButton,
   IonSelect,
   IonSelectOption,
   IonTextarea,
+  IonToast,
   IonToggle
 } from '@ionic/vue';
 
 import {
+  arrowForwardOutline,
   cameraOutline,
   checkmarkCircleOutline,
+  closeOutline,
   gridOutline,
   informationCircleOutline,
   listOutline,
@@ -849,20 +854,25 @@ export default {
     IonButton,
     IonCard,
     IonCardContent,
+    IonContent,
     IonIcon,
     IonLabel,
+    IonModal,
     IonSegment,
     IonSegmentButton,
     IonSelect,
     IonSelectOption,
     IonTextarea,
+    IonToast,
     IonToggle
   },
 
   setup() {
     return {
+      arrowForwardOutline,
       cameraOutline,
       checkmarkCircleOutline,
+      closeOutline,
       gridOutline,
       informationCircleOutline,
       listOutline,
@@ -884,11 +894,19 @@ export default {
       schedule: [],
       isProcessing: false,
       ocrProgress: '',
+
       subModal: {
         show: false,
         round: null,
         court: null,
         player: null
+      },
+
+      toast: {
+        show: false,
+        message: '',
+        color: 'danger',
+        duration: 4000
       }
     };
   },
@@ -903,7 +921,8 @@ export default {
           id: i + 1,
           name,
           sitOuts: 0,
-          lastSatRound: Number.NEGATIVE_INFINITY
+          lastSatRound:
+            Number.NEGATIVE_INFINITY
         }));
     },
 
@@ -919,19 +938,24 @@ export default {
       text,
       type = 'alert alert-danger'
     ) {
-      const messageDiv =
-        document.getElementById('message');
+      let color = 'danger';
 
-      messageDiv.innerHTML =
-        '<div class="' +
-        type +
-        '">' +
-        text +
-        '</div>';
+      if (type.includes('success')) {
+        color = 'success';
+      } else if (
+        type.includes('warning')
+      ) {
+        color = 'warning';
+      } else if (
+        type.includes('info')
+      ) {
+        color = 'primary';
+      }
 
-      setTimeout(() => {
-        messageDiv.innerHTML = '';
-      }, 5000);
+      this.toast.message = text;
+      this.toast.color = color;
+      this.toast.duration = 4000;
+      this.toast.show = true;
     },
 
     async handleImageUpload(event) {
@@ -940,7 +964,8 @@ export default {
       if (!file) return;
 
       this.isProcessing = true;
-      this.ocrProgress = 'Initializing OCR...';
+      this.ocrProgress =
+        'Initializing OCR...';
 
       try {
         const worker =
@@ -966,7 +991,9 @@ export default {
           .join('\n');
 
         if (extractedNames) {
-          if (this.namesText.trim()) {
+          if (
+            this.namesText.trim()
+          ) {
             this.namesText +=
               '\n' + extractedNames;
           } else {
@@ -1012,6 +1039,7 @@ export default {
         this.showMessage(
           'Please enter between 8 and 24 player names.'
         );
+
         return;
       }
 
@@ -1022,6 +1050,7 @@ export default {
         this.showMessage(
           'Please select a valid number of courts.'
         );
+
         return;
       }
 
@@ -1032,18 +1061,24 @@ export default {
         this.showMessage(
           'Please select a valid number of rounds.'
         );
+
         return;
       }
 
-      const people = this.namesText
-        .split('\n')
-        .map(name => name.trim())
-        .filter(name => name.length > 0);
+      const people =
+        this.namesText
+          .split('\n')
+          .map(name => name.trim())
+          .filter(
+            name =>
+              name.length > 0
+          );
 
       if (people.length === 0) {
         this.showMessage(
           'Please enter valid names.'
         );
+
         return;
       }
 
@@ -1081,29 +1116,35 @@ export default {
         r <= this.roundCount;
         r++
       ) {
-        const round = buildRound(
-          roster,
-          r,
-          this.courtCount,
-          partnerCount,
-          opponentCount,
-          individualOpponentCount
-        );
+        const round =
+          buildRound(
+            roster,
+            r,
+            this.courtCount,
+            partnerCount,
+            opponentCount,
+            individualOpponentCount
+          );
 
-        round.sitOut.forEach(p => {
-          const rp =
-            roster.find(
-              x => x.id === p.id
-            );
+        round.sitOut.forEach(
+          p => {
+            const rp =
+              roster.find(
+                x =>
+                  x.id === p.id
+              );
 
-          if (rp) {
-            rp.sitOuts += 1;
-            rp.lastSatRound = r;
+            if (rp) {
+              rp.sitOuts += 1;
+              rp.lastSatRound = r;
+            }
           }
-        });
+        );
 
         rounds.push(round);
       }
+
+      this.schedule = rounds;
 
       this.showMessage(
         'Successfully generated ' +
@@ -1111,12 +1152,15 @@ export default {
           ' rounds of court assignments!',
         'alert alert-success'
       );
-
-      this.schedule = rounds;
     },
 
     clearAll() {
       this.schedule = [];
+
+      this.showMessage(
+        'Court assignments cleared.',
+        'alert alert-success'
+      );
     },
 
     toggleRoundClosed(round) {
@@ -1157,7 +1201,8 @@ export default {
 
       const playerIdx =
         court.players.findIndex(
-          p => p.id === player.id
+          p =>
+            p.id === player.id
         );
 
       court.players.splice(
@@ -1222,6 +1267,7 @@ export default {
         this.showMessage(
           'Please enter at least 8 players to regenerate rounds.'
         );
+
         return;
       }
 
@@ -1235,12 +1281,14 @@ export default {
         new Map();
 
       const roster =
-        this.players.map(p => ({
-          ...p,
-          sitOuts: 0,
-          lastSatRound:
-            Number.NEGATIVE_INFINITY
-        }));
+        this.players.map(
+          p => ({
+            ...p,
+            sitOuts: 0,
+            lastSatRound:
+              Number.NEGATIVE_INFINITY
+          })
+        );
 
       this.schedule.forEach(
         round => {
@@ -1248,7 +1296,8 @@ export default {
             round.courts.forEach(
               court => {
                 if (
-                  court.players.length >= 4
+                  court.players.length >=
+                  4
                 ) {
                   if (
                     court.team1Ids &&
@@ -1387,6 +1436,7 @@ export default {
       );
 
       const newSchedule = [];
+
       let roundIndex = 1;
 
       this.schedule.forEach(
@@ -1466,7 +1516,12 @@ export default {
 }
 
 .page-title {
-  font-size: clamp(1.7rem, 5vw, 2.5rem);
+  font-size: clamp(
+    1.7rem,
+    5vw,
+    2.5rem
+  );
+
   font-weight: 700;
   line-height: 1.15;
 }
@@ -1477,8 +1532,11 @@ export default {
 
 .setup-card {
   margin: 0;
+
   border-radius: 1rem;
+
   background: #ffffff;
+
   box-shadow:
     0 3px 14px
     rgba(0, 0, 0, 0.08);
@@ -1491,9 +1549,11 @@ export default {
 .setup-heading {
   display: flex;
   align-items: center;
+
   gap: 0.75rem;
 
-  border-bottom: 1px solid #dee2e6;
+  border-bottom:
+    1px solid #dee2e6;
 
   padding-bottom: 1rem;
   margin-bottom: 1.5rem;
@@ -1538,8 +1598,8 @@ export default {
 
   font-size: 0.8rem;
   font-weight: 700;
-  text-transform: uppercase;
 
+  text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 
@@ -1587,6 +1647,7 @@ export default {
 
 .settings-grid {
   display: grid;
+
   grid-template-columns:
     repeat(2, minmax(0, 1fr));
 
@@ -1596,7 +1657,9 @@ export default {
 }
 
 .setting-card {
-  border: 1px solid #dee2e6;
+  border:
+    1px solid #dee2e6;
+
   border-radius: 0.875rem;
 
   padding: 0.85rem;
@@ -1625,9 +1688,13 @@ export default {
 
 .game-summary {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
 
-  border: 1px solid #dee2e6;
+  grid-template-columns:
+    repeat(4, 1fr);
+
+  border:
+    1px solid #dee2e6;
+
   border-radius: 0.875rem;
 
   overflow: hidden;
@@ -1638,11 +1705,13 @@ export default {
 .game-summary > div {
   text-align: center;
 
-  padding: 0.85rem 0.25rem;
+  padding:
+    0.85rem 0.25rem;
 }
 
 .game-summary > div + div {
-  border-left: 1px solid #dee2e6;
+  border-left:
+    1px solid #dee2e6;
 }
 
 .game-summary strong,
@@ -1673,11 +1742,13 @@ export default {
 
   font-size: 1.05rem;
   font-weight: 700;
+
   text-transform: none;
 }
 
 .secondary-actions {
   display: grid;
+
   grid-template-columns:
     repeat(2, minmax(0, 1fr));
 
@@ -1702,7 +1773,7 @@ export default {
 }
 
 /* =========================================================
-   ASSIGNMENT HEADER / CONTROLS
+   ASSIGNMENT CONTROLS
 ========================================================= */
 
 .assignments-section {
@@ -1723,7 +1794,12 @@ export default {
 .assignments-title {
   margin: 0;
 
-  font-size: clamp(1.4rem, 4vw, 2rem);
+  font-size: clamp(
+    1.4rem,
+    4vw,
+    2rem
+  );
+
   font-weight: 700;
 }
 
@@ -1739,6 +1815,7 @@ export default {
     0 0 1rem 0;
 
   border-radius: 1rem;
+
   box-shadow:
     0 2px 10px
     rgba(0, 0, 0, 0.06);
@@ -1746,6 +1823,7 @@ export default {
 
 .assignment-controls-content {
   display: grid;
+
   grid-template-columns:
     minmax(0, 1fr)
     minmax(220px, 0.75fr);
@@ -1818,7 +1896,7 @@ export default {
 }
 
 /* =========================================================
-   EMPTY STATE
+   EMPTY
 ========================================================= */
 
 .empty-assignments {
@@ -1879,7 +1957,7 @@ export default {
 }
 
 /* =========================================================
-   ROUND CARDS
+   ROUNDS
 ========================================================= */
 
 .rounds-list {
@@ -2019,6 +2097,7 @@ export default {
 
 .courts-grid {
   display: grid;
+
   grid-template-columns:
     repeat(2, minmax(0, 1fr));
 
@@ -2083,7 +2162,7 @@ export default {
 }
 
 /* =========================================================
-   LIST VIEW PLAYERS
+   LIST VIEW
 ========================================================= */
 
 .court-players {
@@ -2180,6 +2259,7 @@ export default {
 
 .vs-matchup {
   display: grid;
+
   grid-template-columns:
     minmax(0, 1fr)
     auto
@@ -2280,7 +2360,7 @@ export default {
 }
 
 /* =========================================================
-   IDLE / SIT OUT
+   SIT OUT / IDLE
 ========================================================= */
 
 .idle-courts {
@@ -2424,60 +2504,36 @@ export default {
 }
 
 /* =========================================================
-   SUBSTITUTION MODAL
-   Still custom until 8D
+   IONIC SUBSTITUTION MODAL
 ========================================================= */
 
-.sub-modal-overlay {
-  position: fixed;
-  inset: 0;
+.substitution-modal {
+  --width: min(
+    92vw,
+    480px
+  );
 
-  z-index: 1050;
+  --height: auto;
+  --max-height: 86vh;
 
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  padding-top:
-    calc(
-      16px +
-      env(safe-area-inset-top)
-    );
-
-  padding-right:
-    calc(
-      16px +
-      env(safe-area-inset-right)
-    );
-
-  padding-bottom:
-    calc(
-      16px +
-      env(safe-area-inset-bottom)
-    );
-
-  padding-left:
-    calc(
-      16px +
-      env(safe-area-inset-left)
-    );
-
-  background:
-    rgba(0, 0, 0, 0.5);
+  --border-radius: 1rem;
+  --box-shadow:
+    0 12px 40px
+    rgba(0, 0, 0, 0.22);
 }
 
-.sub-modal-box {
-  width: 100%;
-  max-width: 460px;
-  max-height: 85vh;
+.substitution-content {
+  --background: #ffffff;
+}
 
-  overflow-y: auto;
-
-  padding: 1.25rem;
-
-  border-radius: 1rem;
-
-  background: #ffffff;
+.sub-modal-shell {
+  padding:
+    1.25rem
+    1.25rem
+    calc(
+      1.25rem +
+      env(safe-area-inset-bottom)
+    );
 }
 
 .sub-modal-header {
@@ -2503,27 +2559,27 @@ export default {
 }
 
 .sub-modal-title {
-  margin: 0;
+  margin:
+    0.1rem 0 0;
 
   font-size: 1.4rem;
   font-weight: 700;
 }
 
 .sub-modal-close {
+  --padding-start: 0;
+  --padding-end: 0;
+
   width: 44px;
   height: 44px;
 
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  flex-shrink: 0;
 
-  padding: 0;
+  margin: 0;
+}
 
-  border-radius: 50%;
-
-  background: #f1f3f5;
-
-  font-size: 1.1rem;
+.sub-modal-close ion-icon {
+  font-size: 24px;
 }
 
 .sub-current-player {
@@ -2559,7 +2615,7 @@ export default {
 
 .sub-player-option {
   width: 100%;
-  min-height: 56px;
+  min-height: 58px;
 
   display: flex;
   align-items: center;
@@ -2604,6 +2660,11 @@ export default {
 }
 
 .sub-player-action {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 0.25rem;
+
   white-space: nowrap;
 
   color: #198754;
@@ -2612,15 +2673,19 @@ export default {
   font-weight: 700;
 }
 
+.sub-player-action ion-icon {
+  font-size: 18px;
+}
+
 .sub-modal-note {
   display: flex;
   align-items: flex-start;
 
-  gap: 0.45rem;
+  gap: 0.5rem;
 
   margin-top: 1rem;
 
-  padding: 0.75rem;
+  padding: 0.8rem;
 
   border-radius: 0.65rem;
 
@@ -2628,15 +2693,28 @@ export default {
 
   color: #664d03;
 
-  font-size: 0.85rem;
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+
+.sub-modal-note ion-icon {
+  flex-shrink: 0;
+
+  margin-top: 0.05rem;
+
+  font-size: 19px;
 }
 
 .sub-cancel-button {
-  min-height: 48px;
+  --border-radius: 0.75rem;
 
-  border-radius: 0.75rem;
+  min-height: 50px;
+
+  margin:
+    1rem 0 0;
 
   font-weight: 600;
+  text-transform: none;
 }
 
 /* =========================================================
@@ -2743,7 +2821,8 @@ input:focus-visible {
   .round-actions {
     width: 100%;
 
-    justify-content: space-between;
+    justify-content:
+      space-between;
   }
 
   .round-title {
@@ -2825,20 +2904,20 @@ input:focus-visible {
     font-size: 0.95rem;
   }
 
-  .sub-modal-overlay {
+  .substitution-modal {
+    --width: 100%;
+    --height: auto;
+    --max-height: 88vh;
+
     align-items: flex-end;
   }
 
-  .sub-modal-box {
-    max-width: none;
-    max-height: 88vh;
-
-    border-radius:
-      1rem 1rem 0 0;
-
-    padding-bottom:
+  .sub-modal-shell {
+    padding:
+      1.1rem
+      1rem
       calc(
-        1.25rem +
+        1rem +
         env(safe-area-inset-bottom)
       );
   }
