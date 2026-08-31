@@ -80,6 +80,17 @@ jobs:
 
           echo "Provisioning profile installed"
           
+      - name: Set iOS Marketing Version
+        run: |
+          APP_VERSION=$(node -p "require('./package.json').version")
+          echo "Setting iOS marketing version to: $APP_VERSION"
+
+          cd ios/App
+          xcrun agvtool new-marketing-version "$APP_VERSION"
+
+          echo "iOS marketing version:"
+          xcrun agvtool what-marketing-version
+          
       - name: Auto-increment Build Number
         run: |
           # Use GitHub run number as build number to ensure uniqueness
