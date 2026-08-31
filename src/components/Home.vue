@@ -1,634 +1,783 @@
 <template>
   <div>
-<section class="setup-section mb-4">
-  <div class="text-center mb-4">
-    <div class="app-eyebrow">PICKLEBALL TEAM FLOW</div>
-    <h1 class="page-title mb-2">Pickleball Court Assignments</h1>
-    <p class="text-secondary mb-0">
-      Set up your players, courts, and rounds.
-    </p>
-  </div>
+    <section class="setup-section mb-4">
+      <div class="text-center mb-4">
+        <div class="app-eyebrow">PICKLEBALL TEAM FLOW</div>
+        <h1 class="page-title mb-2">Pickleball Court Assignments</h1>
+        <p class="text-secondary mb-0">
+          Set up your players, courts, and rounds.
+        </p>
+      </div>
 
-  <div class="card setup-card shadow-sm">
-    <div class="card-body p-3 p-sm-4">
+      <ion-card class="setup-card">
+        <ion-card-content class="setup-card-content">
+          <div class="setup-heading">
+            <div class="setup-icon" aria-hidden="true">
+              <ion-icon :icon="peopleOutline" />
+            </div>
 
-      <div class="setup-heading d-flex align-items-center gap-2 mb-4">
-        <div class="setup-icon" aria-hidden="true">👥</div>
+            <div>
+              <h2 class="h5 mb-0">Game Setup</h2>
+              <div class="small text-secondary">
+                Everything you need to create your court assignments.
+              </div>
+            </div>
+          </div>
+
+          <div class="roster-section">
+            <div class="roster-heading">
+              <div>
+                <div class="setting-label roster-label">
+                  Player Roster
+                </div>
+
+                <div class="small text-secondary">
+                  Enter one player per line.
+                </div>
+              </div>
+
+              <div
+                class="player-count"
+                :class="{
+                  'player-count-ready':
+                    players.length >= 8 &&
+                    players.length <= 24
+                }"
+              >
+                {{ players.length }}
+                player{{ players.length === 1 ? '' : 's' }}
+              </div>
+            </div>
+
+            <ion-textarea
+              v-model="namesText"
+              class="roster-textarea"
+              fill="outline"
+              :rows="6"
+              :auto-grow="true"
+              placeholder="John Smith&#10;Sarah Johnson&#10;Mike Davis"
+              aria-label="Player roster"
+              helper-text="8–24 players are supported."
+            />
+
+            <input
+              type="file"
+              ref="imageInput"
+              @change="handleImageUpload"
+              accept="image/*"
+              capture="environment"
+              style="display: none;"
+            />
+
+            <ion-button
+              expand="block"
+              fill="outline"
+              class="scan-button"
+              @click="$refs.imageInput.click()"
+              :disabled="isProcessing"
+            >
+              <ion-icon
+                :icon="cameraOutline"
+                slot="start"
+              />
+
+              {{
+                isProcessing
+                  ? 'Processing Photo...'
+                  : 'Scan Names from Photo'
+              }}
+            </ion-button>
+
+            <div
+              v-if="ocrProgress"
+              class="small text-secondary mt-2"
+              aria-live="polite"
+            >
+              {{ ocrProgress }}
+            </div>
+          </div>
+
+          <div class="settings-grid">
+            <div class="setting-card">
+              <ion-select
+                v-model="courtCount"
+                class="setting-select"
+                label="Courts"
+                label-placement="stacked"
+                fill="outline"
+                interface="popover"
+                aria-label="Number of Courts"
+              >
+                <ion-select-option
+                  v-for="n in 11"
+                  :key="n + 1"
+                  :value="n + 1"
+                >
+                  {{ n + 1 }}
+                </ion-select-option>
+              </ion-select>
+
+              <div class="small text-secondary setting-helper">
+                {{ courtCount * 4 }} playing spots
+              </div>
+            </div>
+
+            <div class="setting-card">
+              <ion-select
+                v-model="roundCount"
+                class="setting-select"
+                label="Rounds"
+                label-placement="stacked"
+                fill="outline"
+                interface="popover"
+                aria-label="Number of Rounds"
+              >
+                <ion-select-option
+                  v-for="n in 12"
+                  :key="n"
+                  :value="n"
+                >
+                  {{ n }}
+                </ion-select-option>
+              </ion-select>
+
+              <div class="small text-secondary setting-helper">
+                Planned games
+              </div>
+            </div>
+          </div>
+
+          <div class="game-summary">
+            <div>
+              <strong>{{ players.length }}</strong>
+              <span>Players</span>
+            </div>
+
+            <div>
+              <strong>{{ courtCount }}</strong>
+              <span>Courts</span>
+            </div>
+
+            <div>
+              <strong>{{ roundCount }}</strong>
+              <span>Rounds</span>
+            </div>
+
+            <div>
+              <strong>
+                {{ Math.min(players.length, courtCount * 4) }}
+              </strong>
+              <span>Playing</span>
+            </div>
+          </div>
+
+          <ion-button
+            expand="block"
+            class="generate-button"
+            @click="generate()"
+          >
+            <ion-icon
+              :icon="playOutline"
+              slot="start"
+            />
+
+            Generate Court Assignments
+          </ion-button>
+
+          <div
+            v-if="schedule.length"
+            class="secondary-actions"
+          >
+            <ion-button
+              expand="block"
+              fill="outline"
+              color="medium"
+              class="secondary-action"
+              @click="clearAll()"
+            >
+              <ion-icon
+                :icon="trashOutline"
+                slot="start"
+              />
+
+              Clear Assignments
+            </ion-button>
+
+            <ion-button
+              v-if="hasOpenRounds"
+              expand="block"
+              fill="outline"
+              class="secondary-action"
+              @click="regenerateRemaining()"
+            >
+              <ion-icon
+                :icon="refreshOutline"
+                slot="start"
+              />
+
+              Regenerate Open Rounds
+            </ion-button>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </section>
+
+    <div id="message" class="mt-3"></div>
+
+    <section class="assignments-section mt-4">
+      <div class="assignments-heading mb-3">
         <div>
-          <h2 class="h5 mb-0">Game Setup</h2>
-          <div class="small text-secondary">
-            Everything you need to create your court assignments.
+          <div class="section-eyebrow">YOUR GAME</div>
+
+          <div
+            class="d-flex flex-column flex-sm-row align-items-sm-end gap-1 gap-sm-2"
+          >
+            <h2 class="assignments-title mb-0">
+              Court Assignments
+            </h2>
+
+            <span
+              v-if="schedule.length"
+              class="round-count-text"
+            >
+              {{ schedule.length }}
+              round{{ schedule.length === 1 ? '' : 's' }}
+            </span>
+          </div>
+        </div>
+
+        <div class="assignment-controls mt-2 mt-sm-0">
+          <div
+            class="btn-group view-toggle"
+            role="group"
+            aria-label="Court assignment view"
+          >
+            <button
+              type="button"
+              class="btn"
+              :class="
+                courtView === 'list'
+                  ? 'btn-success'
+                  : 'btn-outline-success'
+              "
+              :aria-pressed="courtView === 'list'"
+              @click="courtView = 'list'"
+            >
+              ☰ List
+            </button>
+
+            <button
+              type="button"
+              class="btn"
+              :class="
+                courtView === 'vs'
+                  ? 'btn-success'
+                  : 'btn-outline-success'
+              "
+              :aria-pressed="courtView === 'vs'"
+              @click="courtView = 'vs'"
+            >
+              VS
+            </button>
+          </div>
+
+          <div class="form-check player-number-toggle">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="showNumbers"
+              v-model="showNumbers"
+            >
+
+            <label
+              class="form-check-label"
+              for="showNumbers"
+            >
+              Show player numbers
+            </label>
           </div>
         </div>
       </div>
 
-      <div class="mb-4">
-        <div class="d-flex justify-content-between align-items-end gap-2 mb-2">
-          <div>
-            <label for="peopleNames" class="form-label fw-semibold mb-1">
-              Player Roster
-            </label>
-            <div class="small text-secondary">
-              Enter one player per line.
+      <div
+        v-if="!schedule.length"
+        class="empty-assignments text-center"
+      >
+        <div
+          class="empty-icon"
+          aria-hidden="true"
+        >
+          🏓
+        </div>
+
+        <h3 class="h5 mb-2">
+          Ready when you are
+        </h3>
+
+        <p class="text-secondary mb-0">
+          Enter at least <strong>8 players</strong>,
+          choose your courts and rounds, then select
+          <strong>Generate Court Assignments</strong>.
+        </p>
+      </div>
+
+      <div
+        v-if="schedule.length > 0"
+        class="rounds-list"
+      >
+        <article
+          v-for="round in schedule"
+          :key="round.index"
+          class="round-card card shadow-sm mb-3"
+        >
+          <div
+            class="round-card-header"
+            :class="{ 'round-closed': round.closed }"
+          >
+            <div>
+              <div class="round-label">
+                ROUND
+              </div>
+
+              <h3 class="round-title mb-0">
+                Round {{ round.index }}
+              </h3>
+            </div>
+
+            <div class="d-flex align-items-center gap-2">
+              <span
+                class="round-status"
+                :class="
+                  round.closed
+                    ? 'round-status-closed'
+                    : 'round-status-open'
+                "
+              >
+                {{ round.closed ? 'Completed' : 'Open' }}
+              </span>
+
+              <button
+                class="btn round-close-button"
+                :class="
+                  round.closed
+                    ? 'btn-outline-secondary'
+                    : 'btn-outline-success'
+                "
+                data-bs-toggle="collapse"
+                :data-bs-target="'#round-' + round.index"
+                @click="toggleRoundClosed(round)"
+              >
+                {{
+                  round.closed
+                    ? '↻ Reopen'
+                    : '✓ Close Round'
+                }}
+              </button>
             </div>
           </div>
 
           <div
-            class="player-count"
-            :class="{ 'player-count-ready': players.length >= 8 && players.length <= 24 }"
+            :id="'round-' + round.index"
+            class="collapse"
+            :class="{ show: !round.closed }"
           >
-            {{ players.length }} player{{ players.length === 1 ? '' : 's' }}
+            <div class="card-body round-card-body">
+              <div class="courts-grid">
+                <div
+                  v-for="court in round.courts"
+                  :key="court.courtNumber"
+                  class="court-card"
+                >
+                  <div class="court-card-header">
+                    <span
+                      class="court-icon"
+                      aria-hidden="true"
+                    >
+                      🏓
+                    </span>
+
+                    <h4 class="court-title mb-0">
+                      Court {{ court.courtNumber }}
+                    </h4>
+                  </div>
+
+                  <div
+                    v-if="courtView === 'list'"
+                    class="court-players"
+                  >
+                    <button
+                      v-for="player in court.players"
+                      :key="player.id"
+                      type="button"
+                      class="player-row"
+                      :class="{
+                        'player-row-substitutable':
+                          !round.closed &&
+                          round.sitOut.length > 0
+                      }"
+                      :disabled="
+                        round.closed ||
+                        round.sitOut.length === 0
+                      "
+                      :aria-label="
+                        !round.closed &&
+                        round.sitOut.length > 0
+                          ? 'Substitute ' + player.name
+                          : player.name
+                      "
+                      @click="
+                        !round.closed &&
+                        round.sitOut.length > 0 &&
+                        openSubModal(
+                          round,
+                          court,
+                          player
+                        )
+                      "
+                    >
+                      <span class="player-name">
+                        <span
+                          v-if="showNumbers"
+                          class="player-number"
+                        >
+                          {{ player.id }}
+                        </span>
+
+                        {{ player.name }}
+                      </span>
+
+                      <span
+                        v-if="
+                          !round.closed &&
+                          round.sitOut.length > 0
+                        "
+                        class="swap-indicator"
+                        aria-hidden="true"
+                      >
+                        ↕
+                      </span>
+                    </button>
+                  </div>
+
+                  <div
+                    v-else
+                    class="vs-matchup"
+                  >
+                    <div class="vs-team">
+                      <div class="vs-team-label">
+                        Team 1
+                      </div>
+
+                      <button
+                        v-for="player in court.players.slice(0, 2)"
+                        :key="player.id"
+                        type="button"
+                        class="vs-player"
+                        :disabled="
+                          round.closed ||
+                          round.sitOut.length === 0
+                        "
+                        :aria-label="
+                          !round.closed &&
+                          round.sitOut.length > 0
+                            ? 'Substitute ' + player.name
+                            : player.name
+                        "
+                        @click="
+                          !round.closed &&
+                          round.sitOut.length > 0 &&
+                          openSubModal(
+                            round,
+                            court,
+                            player
+                          )
+                        "
+                      >
+                        <span
+                          v-if="showNumbers"
+                          class="player-number"
+                        >
+                          {{ player.id }}
+                        </span>
+
+                        <span>{{ player.name }}</span>
+                      </button>
+                    </div>
+
+                    <div
+                      class="vs-divider"
+                      aria-hidden="true"
+                    >
+                      VS
+                    </div>
+
+                    <div class="vs-team">
+                      <div class="vs-team-label">
+                        Team 2
+                      </div>
+
+                      <button
+                        v-for="player in court.players.slice(2, 4)"
+                        :key="player.id"
+                        type="button"
+                        class="vs-player"
+                        :disabled="
+                          round.closed ||
+                          round.sitOut.length === 0
+                        "
+                        :aria-label="
+                          !round.closed &&
+                          round.sitOut.length > 0
+                            ? 'Substitute ' + player.name
+                            : player.name
+                        "
+                        @click="
+                          !round.closed &&
+                          round.sitOut.length > 0 &&
+                          openSubModal(
+                            round,
+                            court,
+                            player
+                          )
+                        "
+                      >
+                        <span
+                          v-if="showNumbers"
+                          class="player-number"
+                        >
+                          {{ player.id }}
+                        </span>
+
+                        <span>{{ player.name }}</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                v-if="round.courts.length < courtCount"
+                class="idle-courts mt-3"
+              >
+                <span aria-hidden="true">ℹ️</span>
+
+                {{ courtCount - round.courts.length }}
+                court{{
+                  courtCount - round.courts.length === 1
+                    ? ''
+                    : 's'
+                }}
+                idle this round.
+              </div>
+
+              <div
+                v-if="round.sitOut.length"
+                class="sit-out-card mt-3"
+              >
+                <div class="sit-out-heading">
+                  <div>
+                    <div class="sit-out-label">
+                      THIS ROUND
+                    </div>
+
+                    <h4 class="sit-out-title mb-0">
+                      Sit Out
+                    </h4>
+                  </div>
+
+                  <span class="sit-out-count">
+                    {{ round.sitOut.length }}
+                  </span>
+                </div>
+
+                <div class="sit-out-players">
+                  <span
+                    v-for="player in round.sitOut"
+                    :key="player.id"
+                    class="sit-out-player"
+                  >
+                    <span
+                      v-if="showNumbers"
+                      class="sit-out-player-number"
+                    >
+                      {{ player.id }}
+                    </span>
+
+                    {{ player.name }}
+                  </span>
+                </div>
+
+                <div
+                  v-if="!round.closed"
+                  class="sit-out-help"
+                >
+                  Need to make a change? Tap any court
+                  player to swap them with someone sitting
+                  out.
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
+        </article>
+      </div>
+    </section>
 
-        <textarea
-          class="form-control roster-textarea"
-          v-model="namesText"
-          placeholder="John Smith&#10;Sarah Johnson&#10;Mike Davis"
-          id="peopleNames"
-          aria-describedby="rosterHelp"
-        ></textarea>
+    <!-- Substitution modal -->
+    <div
+      v-if="subModal.show"
+      class="sub-modal-overlay"
+      role="presentation"
+      @click.self="closeSubModal"
+    >
+      <div
+        class="sub-modal-box shadow-lg"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="subModalTitle"
+        aria-describedby="subModalDescription"
+      >
+        <div class="sub-modal-header">
+          <div>
+            <div class="sub-modal-eyebrow">
+              PLAYER SUBSTITUTION
+            </div>
 
-        <div id="rosterHelp" class="form-text">
-          8–24 players are supported.
-        </div>
+            <h2
+              id="subModalTitle"
+              class="sub-modal-title mb-0"
+            >
+              Swap Player
+            </h2>
+          </div>
 
-        <input
-          type="file"
-          ref="imageInput"
-          @change="handleImageUpload"
-          accept="image/*"
-          capture="environment"
-          style="display: none;"
-        />
-
-        <div class="d-grid mt-3">
           <button
-            class="btn btn-outline-success scan-button"
-            @click="$refs.imageInput.click()"
-            :disabled="isProcessing"
+            type="button"
+            class="btn sub-modal-close"
+            aria-label="Close substitution window"
+            @click="closeSubModal"
           >
-            <span aria-hidden="true">📷</span>
-            {{ isProcessing ? 'Processing Photo...' : 'Scan Names from Photo' }}
+            ✕
           </button>
         </div>
 
         <div
-          v-if="ocrProgress"
-          class="small text-secondary mt-2"
-          aria-live="polite"
+          id="subModalDescription"
+          class="sub-current-player"
         >
-          {{ ocrProgress }}
-        </div>
-      </div>
+          <div class="small text-secondary mb-1">
+            Replace
+          </div>
 
-      <div class="row g-3 mb-4">
-        <div class="col-6">
-          <div class="setting-card h-100">
-            <label for="courts" class="setting-label">
-              Courts
-            </label>
+          <div class="sub-current-player-name">
+            {{ subModal.player?.name }}
+          </div>
 
-            <select
-              class="form-select setting-select"
-              id="courts"
-              v-model="courtCount"
-              aria-label="Number of Courts"
-            >
-              <option value="2">2</option>
-              <option value="3">3</option>
-              <option value="4">4</option>
-              <option value="5">5</option>
-              <option value="6">6</option>
-              <option value="7">7</option>
-              <option value="8">8</option>
-              <option value="9">9</option>
-              <option value="10">10</option>
-              <option value="11">11</option>
-              <option value="12">12</option>
-            </select>
-
-            <div class="small text-secondary mt-2">
-              {{ courtCount * 4 }} playing spots
-            </div>
+          <div class="small text-secondary mt-1">
+            Court {{ subModal.court?.courtNumber }} ·
+            Round {{ subModal.round?.index }}
           </div>
         </div>
 
-        <div class="col-6">
-          <div class="setting-card h-100">
-            <label for="numRounds" class="setting-label">
-              Rounds
-            </label>
-
-            <select
-              class="form-select setting-select"
-              id="numRounds"
-              v-model="roundCount"
-              aria-label="Number of Rounds"
-            >
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-              <option value="4">4</option>
-              <option value="5">5</option>
-              <option value="6">6</option>
-              <option value="7">7</option>
-              <option value="8">8</option>
-              <option value="9">9</option>
-              <option value="10">10</option>
-              <option value="11">11</option>
-              <option value="12">12</option>
-            </select>
-
-            <div class="small text-secondary mt-2">
-              Planned games
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="game-summary mb-3">
-        <div>
-          <strong>{{ players.length }}</strong>
-          <span>Players</span>
+        <div class="sub-instruction">
+          Choose a player who is currently sitting out:
         </div>
 
-        <div>
-          <strong>{{ courtCount }}</strong>
-          <span>Courts</span>
-        </div>
-
-        <div>
-          <strong>{{ roundCount }}</strong>
-          <span>Rounds</span>
-        </div>
-
-        <div>
-          <strong>{{ Math.min(players.length, courtCount * 4) }}</strong>
-          <span>Playing</span>
-        </div>
-      </div>
-
-      <div class="d-grid">
-        <button
-          class="btn btn-success generate-button"
-          @click="generate()"
-        >
-          <span aria-hidden="true">🏓</span>
-          Generate Court Assignments
-        </button>
-      </div>
-
-      <div
-        v-if="schedule.length"
-        class="d-flex flex-column flex-sm-row gap-2 mt-3"
-      >
-        <button
-          class="btn btn-outline-secondary flex-fill secondary-action"
-          @click="clearAll()"
-        >
-          🗑️ Clear Assignments
-        </button>
-
-        <button
-          v-if="hasOpenRounds"
-          class="btn btn-outline-warning flex-fill secondary-action"
-          @click="regenerateRemaining()"
-        >
-          🔄 Regenerate Open Rounds
-        </button>
-      </div>
-    </div>
-  </div>
-</section>
-    
-    <div id="message" class="mt-3"></div>
-    
-<section class="assignments-section mt-4">
-
-  <div class="assignments-heading mb-3">
-    <div>
-      <div class="section-eyebrow">YOUR GAME</div>
-
-      <div class="d-flex flex-column flex-sm-row align-items-sm-end gap-1 gap-sm-2">
-        <h2 class="assignments-title mb-0">Court Assignments</h2>
-
-        <span v-if="schedule.length" class="round-count-text">
-          {{ schedule.length }} round{{ schedule.length === 1 ? '' : 's' }}
-        </span>
-      </div>
-    </div>
-
-<div class="assignment-controls mt-2 mt-sm-0">
-  <div
-    class="btn-group view-toggle"
-    role="group"
-    aria-label="Court assignment view"
-  >
-    <button
-      type="button"
-      class="btn"
-      :class="courtView === 'list' ? 'btn-success' : 'btn-outline-success'"
-      :aria-pressed="courtView === 'list'"
-      @click="courtView = 'list'"
-    >
-      ☰ List
-    </button>
-
-    <button
-      type="button"
-      class="btn"
-      :class="courtView === 'vs' ? 'btn-success' : 'btn-outline-success'"
-      :aria-pressed="courtView === 'vs'"
-      @click="courtView = 'vs'"
-    >
-      VS
-    </button>
-  </div>
-
-  <div class="form-check player-number-toggle">
-    <input
-      class="form-check-input"
-      type="checkbox"
-      id="showNumbers"
-      v-model="showNumbers"
-    >
-    <label class="form-check-label" for="showNumbers">
-      Show player numbers
-    </label>
-  </div>
-</div>
-  </div>
-
-  <div
-    v-if="!schedule.length"
-    class="empty-assignments text-center"
-  >
-    <div class="empty-icon" aria-hidden="true">🏓</div>
-
-    <h3 class="h5 mb-2">Ready when you are</h3>
-
-    <p class="text-secondary mb-0">
-      Enter at least <strong>8 players</strong>, choose your courts and rounds,
-      then select <strong>Generate Court Assignments</strong>.
-    </p>
-  </div>
-
-  <div v-if="schedule.length > 0" class="rounds-list">
-
-    <article
-      v-for="round in schedule"
-      :key="round.index"
-      class="round-card card shadow-sm mb-3"
-    >
-      <div
-        class="round-card-header"
-        :class="{ 'round-closed': round.closed }"
-      >
-        <div>
-          <div class="round-label">
-            ROUND
-          </div>
-
-          <h3 class="round-title mb-0">
-            Round {{ round.index }}
-          </h3>
-        </div>
-
-        <div class="d-flex align-items-center gap-2">
-          <span
-            class="round-status"
-            :class="round.closed ? 'round-status-closed' : 'round-status-open'"
-          >
-            {{ round.closed ? 'Completed' : 'Open' }}
-          </span>
-
+        <div class="sub-player-list">
           <button
-            class="btn round-close-button"
-            :class="round.closed ? 'btn-outline-secondary' : 'btn-outline-success'"
-            data-bs-toggle="collapse"
-            :data-bs-target="'#round-' + round.index"
-            @click="toggleRoundClosed(round)"
+            v-for="p in subModal.round?.sitOut || []"
+            :key="p.id"
+            type="button"
+            class="sub-player-option"
+            @click="confirmSubstitution(p)"
           >
-            {{ round.closed ? '↻ Reopen' : '✓ Close Round' }}
+            <span class="sub-player-option-name">
+              <span
+                v-if="showNumbers"
+                class="player-number"
+              >
+                {{ p.id }}
+              </span>
+
+              {{ p.name }}
+            </span>
+
+            <span class="sub-player-action">
+              Swap
+              <span aria-hidden="true">→</span>
+            </span>
+          </button>
+        </div>
+
+        <div class="sub-modal-note">
+          <span aria-hidden="true">ℹ️</span>
+          {{ subModal.player?.name }} will move to Sit Out
+          for this round.
+        </div>
+
+        <div class="d-grid mt-3">
+          <button
+            type="button"
+            class="btn btn-outline-secondary sub-cancel-button"
+            @click="closeSubModal"
+          >
+            Cancel
           </button>
         </div>
       </div>
-
-      <div
-        :id="'round-' + round.index"
-        class="collapse"
-        :class="{ show: !round.closed }"
-      >
-        <div class="card-body round-card-body">
-
-          <div class="courts-grid">
-
-            <div
-              v-for="court in round.courts"
-              :key="court.courtNumber"
-              class="court-card"
-            >
-              <div class="court-card-header">
-                <span class="court-icon" aria-hidden="true">🏓</span>
-
-                <h4 class="court-title mb-0">
-                  Court {{ court.courtNumber }}
-                </h4>
-              </div>
-
-<div
-  v-if="courtView === 'list'"
-  class="court-players"
->
-  <button
-    v-for="player in court.players"
-    :key="player.id"
-    type="button"
-    class="player-row"
-    :class="{
-      'player-row-substitutable':
-        !round.closed && round.sitOut.length > 0
-    }"
-    :disabled="round.closed || round.sitOut.length === 0"
-    :aria-label="
-      !round.closed && round.sitOut.length > 0
-        ? 'Substitute ' + player.name
-        : player.name
-    "
-    @click="
-      !round.closed &&
-      round.sitOut.length > 0 &&
-      openSubModal(round, court, player)
-    "
-  >
-    <span class="player-name">
-      <span
-        v-if="showNumbers"
-        class="player-number"
-      >
-        {{ player.id }}
-      </span>
-
-      {{ player.name }}
-    </span>
-
-    <span
-      v-if="!round.closed && round.sitOut.length > 0"
-      class="swap-indicator"
-      aria-hidden="true"
-    >
-      ↕
-    </span>
-  </button>
-</div>
-
-<div
-  v-else
-  class="vs-matchup"
->
-  <div class="vs-team">
-    <div class="vs-team-label">Team 1</div>
-
-    <button
-      v-for="player in court.players.slice(0, 2)"
-      :key="player.id"
-      type="button"
-      class="vs-player"
-      :disabled="round.closed || round.sitOut.length === 0"
-      :aria-label="
-        !round.closed && round.sitOut.length > 0
-          ? 'Substitute ' + player.name
-          : player.name
-      "
-      @click="
-        !round.closed &&
-        round.sitOut.length > 0 &&
-        openSubModal(round, court, player)
-      "
-    >
-      <span
-        v-if="showNumbers"
-        class="player-number"
-      >
-        {{ player.id }}
-      </span>
-
-      <span>{{ player.name }}</span>
-    </button>
-  </div>
-
-  <div
-    class="vs-divider"
-    aria-hidden="true"
-  >
-    VS
-  </div>
-
-  <div class="vs-team">
-    <div class="vs-team-label">Team 2</div>
-
-    <button
-      v-for="player in court.players.slice(2, 4)"
-      :key="player.id"
-      type="button"
-      class="vs-player"
-      :disabled="round.closed || round.sitOut.length === 0"
-      :aria-label="
-        !round.closed && round.sitOut.length > 0
-          ? 'Substitute ' + player.name
-          : player.name
-      "
-      @click="
-        !round.closed &&
-        round.sitOut.length > 0 &&
-        openSubModal(round, court, player)
-      "
-    >
-      <span
-        v-if="showNumbers"
-        class="player-number"
-      >
-        {{ player.id }}
-      </span>
-
-      <span>{{ player.name }}</span>
-    </button>
-  </div>
-</div>
-
-          </div>
-        </div>
-
-          <div
-            v-if="round.courts.length < courtCount"
-            class="idle-courts mt-3"
-          >
-            <span aria-hidden="true">ℹ️</span>
-
-            {{ courtCount - round.courts.length }}
-            court{{ courtCount - round.courts.length === 1 ? '' : 's' }}
-            idle this round.
-          </div>
-
-          <div
-            v-if="round.sitOut.length"
-            class="sit-out-card mt-3"
-          >
-            <div class="sit-out-heading">
-              <div>
-                <div class="sit-out-label">
-                  THIS ROUND
-                </div>
-
-                <h4 class="sit-out-title mb-0">
-                  Sit Out
-                </h4>
-              </div>
-
-              <span class="sit-out-count">
-                {{ round.sitOut.length }}
-              </span>
-            </div>
-
-            <div class="sit-out-players">
-              <span
-                v-for="player in round.sitOut"
-                :key="player.id"
-                class="sit-out-player"
-              >
-                <span
-                  v-if="showNumbers"
-                  class="sit-out-player-number"
-                >
-                  {{ player.id }}
-                </span>
-
-                {{ player.name }}
-              </span>
-            </div>
-
-            <div
-              v-if="!round.closed"
-              class="sit-out-help"
-            >
-              Need to make a change? Tap any court player to swap them with someone sitting out.
-            </div>
-          </div>
-
-        </div>
-      </div>
-    </article>
-
-  </div>
-</section>
-    
-<!-- Substitution modal -->
-<div
-  v-if="subModal.show"
-  class="sub-modal-overlay"
-  role="presentation"
-  @click.self="closeSubModal"
->
-  <div
-    class="sub-modal-box shadow-lg"
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="subModalTitle"
-    aria-describedby="subModalDescription"
-  >
-    <div class="sub-modal-header">
-      <div>
-        <div class="sub-modal-eyebrow">PLAYER SUBSTITUTION</div>
-        <h2 id="subModalTitle" class="sub-modal-title mb-0">
-          Swap Player
-        </h2>
-      </div>
-
-      <button
-        type="button"
-        class="btn sub-modal-close"
-        aria-label="Close substitution window"
-        @click="closeSubModal"
-      >
-        ✕
-      </button>
-    </div>
-
-    <div
-      id="subModalDescription"
-      class="sub-current-player"
-    >
-      <div class="small text-secondary mb-1">
-        Replace
-      </div>
-
-      <div class="sub-current-player-name">
-        {{ subModal.player?.name }}
-      </div>
-
-      <div class="small text-secondary mt-1">
-        Court {{ subModal.court?.courtNumber }} ·
-        Round {{ subModal.round?.index }}
-      </div>
-    </div>
-
-    <div class="sub-instruction">
-      Choose a player who is currently sitting out:
-    </div>
-
-    <div class="sub-player-list">
-      <button
-        v-for="p in subModal.round?.sitOut || []"
-        :key="p.id"
-        type="button"
-        class="sub-player-option"
-        @click="confirmSubstitution(p)"
-      >
-        <span class="sub-player-option-name">
-          <span
-            v-if="showNumbers"
-            class="player-number"
-          >
-            {{ p.id }}
-          </span>
-
-          {{ p.name }}
-        </span>
-
-        <span class="sub-player-action">
-          Swap
-          <span aria-hidden="true">→</span>
-        </span>
-      </button>
-    </div>
-
-    <div class="sub-modal-note">
-      <span aria-hidden="true">ℹ️</span>
-      {{ subModal.player?.name }} will move to Sit Out for this round.
-    </div>
-
-    <div class="d-grid mt-3">
-      <button
-        type="button"
-        class="btn btn-outline-secondary sub-cancel-button"
-        @click="closeSubModal"
-      >
-        Cancel
-      </button>
     </div>
   </div>
-</div>
-
-</div>
 </template>
 
 <script>
-import { buildRound, keyPair, keyMatchup } from '../utils.js';
+import {
+  IonButton,
+  IonCard,
+  IonCardContent,
+  IonIcon,
+  IonSelect,
+  IonSelectOption,
+  IonTextarea
+} from '@ionic/vue';
+
+import {
+  cameraOutline,
+  peopleOutline,
+  playOutline,
+  refreshOutline,
+  trashOutline
+} from 'ionicons/icons';
+
+import {
+  buildRound,
+  keyPair,
+  keyMatchup
+} from '../utils.js';
+
 import { createWorker } from 'tesseract.js';
 
 export default {
   name: 'Home',
+
+  components: {
+    IonButton,
+    IonCard,
+    IonCardContent,
+    IonIcon,
+    IonSelect,
+    IonSelectOption,
+    IonTextarea
+  },
+
+  setup() {
+    return {
+      cameraOutline,
+      peopleOutline,
+      playOutline,
+      refreshOutline,
+      trashOutline
+    };
+  },
+
   data() {
     return {
       namesText: '',
@@ -639,63 +788,111 @@ export default {
       schedule: [],
       isProcessing: false,
       ocrProgress: '',
-      subModal: { show: false, round: null, court: null, player: null },
-    }
+      subModal: {
+        show: false,
+        round: null,
+        court: null,
+        player: null
+      }
+    };
   },
+
   computed: {
     players() {
       return this.namesText
         .split('\n')
         .map(s => s.trim())
         .filter(Boolean)
-        .map((name, i) => ({ id: i + 1, name, sitOuts: 0, lastSatRound: Number.NEGATIVE_INFINITY }));
+        .map((name, i) => ({
+          id: i + 1,
+          name,
+          sitOuts: 0,
+          lastSatRound: Number.NEGATIVE_INFINITY
+        }));
     },
+
     hasOpenRounds() {
       return this.schedule.some(round => !round.closed);
     }
   },
+
   methods: {
-    showMessage(text, type = 'alert alert-danger') {
-      const messageDiv = document.getElementById('message');
-      messageDiv.innerHTML = '<div class="' + type + '">' + text + '</div>';
+    showMessage(
+      text,
+      type = 'alert alert-danger'
+    ) {
+      const messageDiv =
+        document.getElementById('message');
+
+      messageDiv.innerHTML =
+        '<div class="' +
+        type +
+        '">' +
+        text +
+        '</div>';
+
       setTimeout(() => {
         messageDiv.innerHTML = '';
       }, 5000);
     },
+
     async handleImageUpload(event) {
       const file = event.target.files[0];
+
       if (!file) return;
 
       this.isProcessing = true;
       this.ocrProgress = 'Initializing OCR...';
 
       try {
-        const worker = await createWorker('eng');
-        
-        this.ocrProgress = 'Processing image...';
-        const { data: { text } } = await worker.recognize(file);
+        const worker =
+          await createWorker('eng');
+
+        this.ocrProgress =
+          'Processing image...';
+
+        const {
+          data: { text }
+        } = await worker.recognize(file);
+
         await worker.terminate();
 
-        // Extract names (lines with text, clean up)
         const extractedNames = text
           .split('\n')
           .map(line => line.trim())
-          .filter(line => line.length > 0 && line.length < 50) // Filter reasonable name lengths
+          .filter(
+            line =>
+              line.length > 0 &&
+              line.length < 50
+          )
           .join('\n');
 
         if (extractedNames) {
-          // Append to existing names or replace if empty
           if (this.namesText.trim()) {
-            this.namesText += '\n' + extractedNames;
+            this.namesText +=
+              '\n' + extractedNames;
           } else {
-            this.namesText = extractedNames;
+            this.namesText =
+              extractedNames;
           }
-          this.showMessage(`Successfully extracted ${extractedNames.split('\n').length} names from image!`, 'alert alert-success');
+
+          this.showMessage(
+            `Successfully extracted ${
+              extractedNames.split('\n').length
+            } names from image!`,
+            'alert alert-success'
+          );
         } else {
-          this.showMessage('No text found in image. Please try a clearer photo.', 'alert alert-warning');
+          this.showMessage(
+            'No text found in image. Please try a clearer photo.',
+            'alert alert-warning'
+          );
         }
       } catch (error) {
-        console.error('OCR Error:', error);
+        console.error(
+          'OCR Error:',
+          error
+        );
 
         this.showMessage(
           'Unable to read names from that image. Please try another photo or enter the player names manually.',
@@ -707,163 +904,446 @@ export default {
         event.target.value = '';
       }
     },
+
     generate() {
-      if (!this.players || this.players.length < 8 || this.players.length > 24) {
-        this.showMessage('Please enter between 8 and 24 player names.');
+      if (
+        !this.players ||
+        this.players.length < 8 ||
+        this.players.length > 24
+      ) {
+        this.showMessage(
+          'Please enter between 8 and 24 player names.'
+        );
         return;
       }
 
-      if (!this.courtCount || this.courtCount < 1) {
-        this.showMessage('Please select a valid number of courts.');
+      if (
+        !this.courtCount ||
+        this.courtCount < 1
+      ) {
+        this.showMessage(
+          'Please select a valid number of courts.'
+        );
         return;
       }
 
-      if (!this.roundCount || this.roundCount < 1) {
-        this.showMessage('Please select a valid number of rounds.');
+      if (
+        !this.roundCount ||
+        this.roundCount < 1
+      ) {
+        this.showMessage(
+          'Please select a valid number of rounds.'
+        );
         return;
       }
 
-      const people = this.namesText.split('\n')
+      const people = this.namesText
+        .split('\n')
         .map(name => name.trim())
         .filter(name => name.length > 0);
 
       if (people.length === 0) {
-        this.showMessage('Please enter valid names.');
+        this.showMessage(
+          'Please enter valid names.'
+        );
         return;
       }
 
-      const uniquePeople = [...new Set(people)];
-      if (uniquePeople.length !== people.length) {
-        this.showMessage('Warning: Duplicate names detected. Using unique names only.', 'alert alert-warning');
+      const uniquePeople =
+        [...new Set(people)];
+
+      if (
+        uniquePeople.length !==
+        people.length
+      ) {
+        this.showMessage(
+          'Warning: Duplicate names detected. Using unique names only.',
+          'alert alert-warning'
+        );
       }
 
-      const roster = this.players.map(p => ({ ...p }));
-      const partnerCount = new Map();
-      const opponentCount = new Map();
-      const individualOpponentCount = new Map();
+      const roster =
+        this.players.map(p => ({
+          ...p
+        }));
+
+      const partnerCount =
+        new Map();
+
+      const opponentCount =
+        new Map();
+
+      const individualOpponentCount =
+        new Map();
+
       const rounds = [];
 
-      for (let r = 1; r <= this.roundCount; r++) {
-        const round = buildRound(roster, r, this.courtCount, partnerCount, opponentCount, individualOpponentCount);
+      for (
+        let r = 1;
+        r <= this.roundCount;
+        r++
+      ) {
+        const round = buildRound(
+          roster,
+          r,
+          this.courtCount,
+          partnerCount,
+          opponentCount,
+          individualOpponentCount
+        );
+
         round.sitOut.forEach(p => {
-          const rp = roster.find(x => x.id === p.id);
+          const rp =
+            roster.find(
+              x => x.id === p.id
+            );
+
           if (rp) {
             rp.sitOuts += 1;
             rp.lastSatRound = r;
           }
         });
+
         rounds.push(round);
       }
 
-      this.showMessage('Successfully generated ' + this.roundCount + ' rounds of court assignments!', 'alert alert-success');
+      this.showMessage(
+        'Successfully generated ' +
+          this.roundCount +
+          ' rounds of court assignments!',
+        'alert alert-success'
+      );
+
       this.schedule = rounds;
     },
+
     clearAll() {
       this.schedule = [];
     },
+
     toggleRoundClosed(round) {
-      round.closed = !round.closed;
+      round.closed =
+        !round.closed;
     },
-    openSubModal(round, court, player) {
-      this.subModal = { show: true, round, court, player };
+
+    openSubModal(
+      round,
+      court,
+      player
+    ) {
+      this.subModal = {
+        show: true,
+        round,
+        court,
+        player
+      };
     },
+
     closeSubModal() {
-      this.subModal = { show: false, round: null, court: null, player: null };
+      this.subModal = {
+        show: false,
+        round: null,
+        court: null,
+        player: null
+      };
     },
-    confirmSubstitution(sitOutPlayer) {
-      const { round, court, player } = this.subModal;
 
-      // Swap player into sit-out and sit-out player onto court
-      const playerIdx = court.players.findIndex(p => p.id === player.id);
-      court.players.splice(playerIdx, 1, { ...sitOutPlayer });
+    confirmSubstitution(
+      sitOutPlayer
+    ) {
+      const {
+        round,
+        court,
+        player
+      } = this.subModal;
 
-      // Keep team1Ids / team2Ids in sync
+      const playerIdx =
+        court.players.findIndex(
+          p => p.id === player.id
+        );
+
+      court.players.splice(
+        playerIdx,
+        1,
+        { ...sitOutPlayer }
+      );
+
       if (court.team1Ids) {
-        const t1idx = court.team1Ids.indexOf(player.id);
-        if (t1idx !== -1) court.team1Ids[t1idx] = sitOutPlayer.id;
-      }
-      if (court.team2Ids) {
-        const t2idx = court.team2Ids.indexOf(player.id);
-        if (t2idx !== -1) court.team2Ids[t2idx] = sitOutPlayer.id;
+        const t1idx =
+          court.team1Ids.indexOf(
+            player.id
+          );
+
+        if (t1idx !== -1) {
+          court.team1Ids[t1idx] =
+            sitOutPlayer.id;
+        }
       }
 
-      // Move sit-out player onto court, move active player to sit-out
-      const sitOutIdx = round.sitOut.findIndex(p => p.id === sitOutPlayer.id);
-      round.sitOut.splice(sitOutIdx, 1);
-      round.sitOut.push({ ...player });
+      if (court.team2Ids) {
+        const t2idx =
+          court.team2Ids.indexOf(
+            player.id
+          );
+
+        if (t2idx !== -1) {
+          court.team2Ids[t2idx] =
+            sitOutPlayer.id;
+        }
+      }
+
+      const sitOutIdx =
+        round.sitOut.findIndex(
+          p =>
+            p.id ===
+            sitOutPlayer.id
+        );
+
+      round.sitOut.splice(
+        sitOutIdx,
+        1
+      );
+
+      round.sitOut.push({
+        ...player
+      });
 
       this.closeSubModal();
-      this.showMessage(`${player.name} subbed out → ${sitOutPlayer.name} subbed in.`, 'alert alert-success');
+
+      this.showMessage(
+        `${player.name} subbed out → ${sitOutPlayer.name} subbed in.`,
+        'alert alert-success'
+      );
     },
+
     regenerateRemaining() {
-      if (!this.players || this.players.length < 8) {
-        this.showMessage('Please enter at least 8 players to regenerate rounds.');
+      if (
+        !this.players ||
+        this.players.length < 8
+      ) {
+        this.showMessage(
+          'Please enter at least 8 players to regenerate rounds.'
+        );
         return;
       }
 
-      const partnerCount = new Map();
-      const opponentCount = new Map();
-      const individualOpponentCount = new Map();
-      const roster = this.players.map(p => ({ ...p, sitOuts: 0, lastSatRound: Number.NEGATIVE_INFINITY }));
+      const partnerCount =
+        new Map();
 
-      this.schedule.forEach(round => {
-        if (round.closed) {
-          round.courts.forEach(court => {
-            if (court.players.length >= 4) {
-              if (court.team1Ids && court.team2Ids) {
-                const [a, b] = court.team1Ids;
-                const [c, d] = court.team2Ids;
-                const pk1 = keyPair(a, b), pk2 = keyPair(c, d);
-                partnerCount.set(pk1, (partnerCount.get(pk1) || 0) + 1);
-                partnerCount.set(pk2, (partnerCount.get(pk2) || 0) + 1);
-                const mk = keyMatchup([{id: a}, {id: b}], [{id: c}, {id: d}]);
-                opponentCount.set(mk, (opponentCount.get(mk) || 0) + 1);
-                [[a,c],[a,d],[b,c],[b,d]].forEach(([x, y]) => {
-                  const ik = keyPair(x, y);
-                  individualOpponentCount.set(ik, (individualOpponentCount.get(ik) || 0) + 1);
-                });
-              } else {
-                // Fallback for old data without stored team IDs: record best-guess partnerships
-                const p = court.players;
-                const pk1 = keyPair(p[0].id, p[1].id);
-                const pk2 = keyPair(p[2].id, p[3].id);
-                partnerCount.set(pk1, (partnerCount.get(pk1) || 0) + 1);
-                partnerCount.set(pk2, (partnerCount.get(pk2) || 0) + 1);
+      const opponentCount =
+        new Map();
+
+      const individualOpponentCount =
+        new Map();
+
+      const roster =
+        this.players.map(p => ({
+          ...p,
+          sitOuts: 0,
+          lastSatRound:
+            Number.NEGATIVE_INFINITY
+        }));
+
+      this.schedule.forEach(
+        round => {
+          if (round.closed) {
+            round.courts.forEach(
+              court => {
+                if (
+                  court.players.length >= 4
+                ) {
+                  if (
+                    court.team1Ids &&
+                    court.team2Ids
+                  ) {
+                    const [a, b] =
+                      court.team1Ids;
+
+                    const [c, d] =
+                      court.team2Ids;
+
+                    const pk1 =
+                      keyPair(a, b);
+
+                    const pk2 =
+                      keyPair(c, d);
+
+                    partnerCount.set(
+                      pk1,
+                      (
+                        partnerCount.get(
+                          pk1
+                        ) || 0
+                      ) + 1
+                    );
+
+                    partnerCount.set(
+                      pk2,
+                      (
+                        partnerCount.get(
+                          pk2
+                        ) || 0
+                      ) + 1
+                    );
+
+                    const mk =
+                      keyMatchup(
+                        [
+                          { id: a },
+                          { id: b }
+                        ],
+                        [
+                          { id: c },
+                          { id: d }
+                        ]
+                      );
+
+                    opponentCount.set(
+                      mk,
+                      (
+                        opponentCount.get(
+                          mk
+                        ) || 0
+                      ) + 1
+                    );
+
+                    [
+                      [a, c],
+                      [a, d],
+                      [b, c],
+                      [b, d]
+                    ].forEach(
+                      ([x, y]) => {
+                        const ik =
+                          keyPair(
+                            x,
+                            y
+                          );
+
+                        individualOpponentCount.set(
+                          ik,
+                          (
+                            individualOpponentCount.get(
+                              ik
+                            ) || 0
+                          ) + 1
+                        );
+                      }
+                    );
+                  } else {
+                    const p =
+                      court.players;
+
+                    const pk1 =
+                      keyPair(
+                        p[0].id,
+                        p[1].id
+                      );
+
+                    const pk2 =
+                      keyPair(
+                        p[2].id,
+                        p[3].id
+                      );
+
+                    partnerCount.set(
+                      pk1,
+                      (
+                        partnerCount.get(
+                          pk1
+                        ) || 0
+                      ) + 1
+                    );
+
+                    partnerCount.set(
+                      pk2,
+                      (
+                        partnerCount.get(
+                          pk2
+                        ) || 0
+                      ) + 1
+                    );
+                  }
+                }
               }
-            }
-          });
-          round.sitOut.forEach(p => {
-            const rp = roster.find(x => x.id === p.id);
-            if (rp) {
-              rp.sitOuts += 1;
-              rp.lastSatRound = round.index;
-            }
-          });
+            );
+
+            round.sitOut.forEach(
+              p => {
+                const rp =
+                  roster.find(
+                    x =>
+                      x.id ===
+                      p.id
+                  );
+
+                if (rp) {
+                  rp.sitOuts += 1;
+                  rp.lastSatRound =
+                    round.index;
+                }
+              }
+            );
+          }
         }
-      });
+      );
 
       const newSchedule = [];
       let roundIndex = 1;
 
-      this.schedule.forEach(existingRound => {
-        if (existingRound.closed) {
-          newSchedule.push({ ...existingRound, index: roundIndex });
-        } else {
-          const newRound = buildRound(roster, roundIndex, this.courtCount, partnerCount, opponentCount, individualOpponentCount);
-          newRound.sitOut.forEach(p => {
-            const rp = roster.find(x => x.id === p.id);
-            if (rp) {
-              rp.sitOuts += 1;
-              rp.lastSatRound = roundIndex;
-            }
-          });
-          newSchedule.push(newRound);
-        }
-        roundIndex++;
-      });
+      this.schedule.forEach(
+        existingRound => {
+          if (
+            existingRound.closed
+          ) {
+            newSchedule.push({
+              ...existingRound,
+              index: roundIndex
+            });
+          } else {
+            const newRound =
+              buildRound(
+                roster,
+                roundIndex,
+                this.courtCount,
+                partnerCount,
+                opponentCount,
+                individualOpponentCount
+              );
 
-      this.schedule = newSchedule;
-      this.showMessage('Successfully regenerated open rounds with the current player roster!', 'alert alert-success');
+            newRound.sitOut.forEach(
+              p => {
+                const rp =
+                  roster.find(
+                    x =>
+                      x.id ===
+                      p.id
+                  );
+
+                if (rp) {
+                  rp.sitOuts += 1;
+                  rp.lastSatRound =
+                    roundIndex;
+                }
+              }
+            );
+
+            newSchedule.push(
+              newRound
+            );
+          }
+
+          roundIndex++;
+        }
+      );
+
+      this.schedule =
+        newSchedule;
+
+      this.showMessage(
+        'Successfully regenerated open rounds with the current player roster!',
+        'alert alert-success'
+      );
     }
   }
 };
@@ -879,11 +1359,20 @@ export default {
   justify-content: center;
   z-index: 1050;
 
-  padding-top: calc(16px + env(safe-area-inset-top));
-  padding-right: calc(16px + env(safe-area-inset-right));
-  padding-bottom: calc(16px + env(safe-area-inset-bottom));
-  padding-left: calc(16px + env(safe-area-inset-left));
+  padding-top: calc(
+    16px + env(safe-area-inset-top)
+  );
+  padding-right: calc(
+    16px + env(safe-area-inset-right)
+  );
+  padding-bottom: calc(
+    16px + env(safe-area-inset-bottom)
+  );
+  padding-left: calc(
+    16px + env(safe-area-inset-left)
+  );
 }
+
 .app-eyebrow {
   font-size: 0.75rem;
   font-weight: 700;
@@ -892,34 +1381,82 @@ export default {
 }
 
 .page-title {
-  font-size: clamp(1.7rem, 5vw, 2.5rem);
+  font-size: clamp(
+    1.7rem,
+    5vw,
+    2.5rem
+  );
   font-weight: 700;
   line-height: 1.15;
 }
 
+/* Ionic Game Setup */
+
 .setup-card {
-  border: 0;
+  margin: 0;
   border-radius: 1rem;
+  box-shadow:
+    0 3px 14px
+    rgba(0, 0, 0, 0.08);
+  background: #ffffff;
+}
+
+.setup-card-content {
+  padding: 1.5rem;
 }
 
 .setup-heading {
-  border-bottom: 1px solid #dee2e6;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+
+  border-bottom:
+    1px solid #dee2e6;
+
   padding-bottom: 1rem;
+  margin-bottom: 1.5rem;
 }
 
 .setup-icon {
   width: 44px;
   height: 44px;
+
   border-radius: 50%;
+
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
+  flex-shrink: 0;
+
   background: #e9f7ef;
-  font-size: 1.25rem;
+  color: #0e4b2e;
+}
+
+.setup-icon ion-icon {
+  font-size: 1.4rem;
+}
+
+.roster-section {
+  margin-bottom: 1.5rem;
+}
+
+.roster-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+
+  margin-bottom: 0.65rem;
+}
+
+.roster-label {
+  margin-bottom: 0.15rem;
 }
 
 .player-count {
   white-space: nowrap;
+
   font-weight: 600;
   color: #6c757d;
 }
@@ -929,65 +1466,107 @@ export default {
 }
 
 .roster-textarea {
-  min-height: 210px;
-  resize: vertical;
+  --background: #ffffff;
+  --border-color: #ced4da;
+  --border-radius: 0.75rem;
+  --highlight-color-focused: #198754;
+  --padding-start: 0.9rem;
+  --padding-end: 0.9rem;
+  --padding-top: 0.85rem;
+  --padding-bottom: 0.85rem;
+
   font-size: 1rem;
   line-height: 1.55;
-  border-radius: 0.75rem;
 }
 
-.scan-button,
-.generate-button,
-.secondary-action {
+.scan-button {
+  --border-color: #198754;
+  --color: #146c43;
+  --border-radius: 0.75rem;
+  --border-width: 1px;
+
   min-height: 50px;
-  border-radius: 0.75rem;
+  margin-top: 1rem;
+
   font-weight: 600;
+  text-transform: none;
 }
 
-.generate-button {
-  font-size: 1.05rem;
-  min-height: 56px;
+.settings-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 1rem;
+
+  margin-bottom: 1.5rem;
 }
 
 .setting-card {
-  border: 1px solid #dee2e6;
+  border:
+    1px solid #dee2e6;
+
   border-radius: 0.875rem;
-  padding: 1rem;
-  text-align: center;
+
+  padding: 0.85rem;
+
   background: #fff;
 }
 
 .setting-label {
   display: block;
+
   font-size: 0.8rem;
   font-weight: 700;
+
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  margin-bottom: 0.5rem;
 }
 
 .setting-select {
-  min-height: 52px;
-  font-size: 1.25rem;
+  --background: #ffffff;
+  --border-color: #ced4da;
+  --border-radius: 0.7rem;
+  --highlight-color-focused: #198754;
+  --padding-start: 0.8rem;
+  --padding-end: 0.8rem;
+
+  width: 100%;
+
   font-weight: 700;
+}
+
+.setting-helper {
+  margin-top: 0.6rem;
   text-align: center;
 }
 
 .game-summary {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  border: 1px solid #dee2e6;
+
+  grid-template-columns:
+    repeat(4, 1fr);
+
+  border:
+    1px solid #dee2e6;
+
   border-radius: 0.875rem;
+
   overflow: hidden;
+
+  margin-bottom: 1rem;
 }
 
 .game-summary > div {
   text-align: center;
-  padding: 0.85rem 0.25rem;
+
+  padding:
+    0.85rem 0.25rem;
 }
 
 .game-summary > div + div {
-  border-left: 1px solid #dee2e6;
+  border-left:
+    1px solid #dee2e6;
 }
 
 .game-summary strong,
@@ -1001,22 +1580,63 @@ export default {
 
 .game-summary span {
   margin-top: 0.15rem;
+
   font-size: 0.72rem;
   color: #6c757d;
 }
 
+.generate-button {
+  --background: #0e4b2e;
+  --background-hover: #0b3d26;
+  --background-activated: #0b3d26;
+  --color: #ffffff;
+  --border-radius: 0.75rem;
+
+  min-height: 56px;
+  margin: 0;
+
+  font-size: 1.05rem;
+  font-weight: 700;
+  text-transform: none;
+}
+
+.secondary-actions {
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 0.75rem;
+
+  margin-top: 0.75rem;
+}
+
+.secondary-action {
+  --border-radius: 0.75rem;
+
+  min-height: 50px;
+
+  margin: 0;
+
+  font-weight: 600;
+  text-transform: none;
+}
+
+.secondary-action:not([color="medium"]) {
+  --border-color: #198754;
+  --color: #146c43;
+}
+
 @media (max-width: 575.98px) {
-  .setup-card .card-body {
+  .setup-card-content {
     padding: 1rem;
   }
 
   .roster-textarea {
-    min-height: 190px;
     font-size: 16px;
   }
 
   .setting-card {
-    padding: 0.85rem 0.65rem;
+    padding: 0.7rem;
   }
 
   .game-summary strong {
@@ -1025,6 +1645,10 @@ export default {
 
   .game-summary span {
     font-size: 0.68rem;
+  }
+
+  .secondary-actions {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -1043,7 +1667,12 @@ export default {
 }
 
 .assignments-title {
-  font-size: clamp(1.4rem, 4vw, 2rem);
+  font-size: clamp(
+    1.4rem,
+    4vw,
+    2rem
+  );
+
   font-weight: 700;
 }
 
@@ -1055,48 +1684,67 @@ export default {
 
 .player-number-toggle {
   min-height: 44px;
+
   display: flex;
   align-items: center;
+
   gap: 0.35rem;
 }
 
-.player-number-toggle .form-check-input {
+.player-number-toggle
+.form-check-input {
   width: 1.25rem;
   height: 1.25rem;
+
   margin-top: 0;
 }
 
-.player-number-toggle .form-check-label {
+.player-number-toggle
+.form-check-label {
   font-size: 0.95rem;
 }
 
 .empty-assignments {
-  border: 2px dashed #ced4da;
+  border:
+    2px dashed #ced4da;
+
   border-radius: 1rem;
-  padding: 2.5rem 1.25rem;
+
+  padding:
+    2.5rem 1.25rem;
+
   background: #fff;
 }
 
 .empty-icon {
   font-size: 2rem;
+
   margin-bottom: 0.75rem;
 }
 
 .round-card {
   border: 0;
+
   border-radius: 1rem;
+
   overflow: hidden;
 }
 
 .round-card-header {
   min-height: 72px;
-  padding: 1rem 1.1rem;
+
+  padding:
+    1rem 1.1rem;
+
   background: #f8f9fa;
-  border-bottom: 1px solid #e9ecef;
+
+  border-bottom:
+    1px solid #e9ecef;
 
   display: flex;
   justify-content: space-between;
   align-items: center;
+
   gap: 1rem;
 }
 
@@ -1108,6 +1756,7 @@ export default {
   font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.1em;
+
   color: #6c757d;
 }
 
@@ -1119,8 +1768,12 @@ export default {
 .round-status {
   display: inline-flex;
   align-items: center;
+
   border-radius: 999px;
-  padding: 0.3rem 0.65rem;
+
+  padding:
+    0.3rem 0.65rem;
+
   font-size: 0.75rem;
   font-weight: 700;
 }
@@ -1137,7 +1790,9 @@ export default {
 
 .round-close-button {
   min-height: 44px;
+
   border-radius: 0.65rem;
+
   font-weight: 600;
 }
 
@@ -1147,26 +1802,37 @@ export default {
 
 .courts-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
   gap: 1rem;
 }
 
 .court-card {
-  border: 1px solid #dee2e6;
+  border:
+    1px solid #dee2e6;
+
   border-radius: 0.875rem;
+
   overflow: hidden;
+
   background: #fff;
 }
 
 .court-card-header {
   display: flex;
   align-items: center;
+
   gap: 0.5rem;
 
-  padding: 0.8rem 1rem;
+  padding:
+    0.8rem 1rem;
 
   background: #e9f7ef;
-  border-bottom: 1px solid #d1e7dd;
+
+  border-bottom:
+    1px solid #d1e7dd;
 }
 
 .court-icon {
@@ -1176,47 +1842,64 @@ export default {
 .court-title {
   font-size: 1rem;
   font-weight: 700;
+
   color: #146c43;
 }
 
 .court-players {
   padding: 0.45rem;
 }
-  .assignment-controls {
+
+.assignment-controls {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
+
   gap: 0.5rem;
 }
 
 .view-toggle .btn {
   min-height: 44px;
   min-width: 76px;
+
   font-weight: 600;
 }
 
 .vs-matchup {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    auto
+    minmax(0, 1fr);
+
   align-items: stretch;
+
   gap: 0.75rem;
+
   padding: 0.75rem;
 }
 
 .vs-team {
   display: flex;
   flex-direction: column;
+
   gap: 0.4rem;
+
   min-width: 0;
 }
 
 .vs-team-label {
   text-align: center;
+
   font-size: 0.72rem;
   font-weight: 700;
+
   letter-spacing: 0.06em;
   text-transform: uppercase;
+
   color: #6c757d;
+
   margin-bottom: 0.1rem;
 }
 
@@ -1226,11 +1909,15 @@ export default {
 
   display: flex;
   align-items: center;
+
   gap: 0.45rem;
 
-  padding: 0.65rem 0.7rem;
+  padding:
+    0.65rem 0.7rem;
 
-  border: 1px solid #dee2e6;
+  border:
+    1px solid #dee2e6;
+
   border-radius: 0.65rem;
 
   background: #fff;
@@ -1238,16 +1925,21 @@ export default {
 
   font-size: 1rem;
   font-weight: 600;
+
   text-align: left;
 }
 
 .vs-player:not(:disabled):hover {
   background: #f8f9fa;
+
   border-color: #adb5bd;
 }
 
 .vs-player:focus-visible {
-  outline: 3px solid rgba(25, 135, 84, 0.25);
+  outline:
+    3px solid
+    rgba(25, 135, 84, 0.25);
+
   outline-offset: 2px;
 }
 
@@ -1262,6 +1954,7 @@ export default {
   height: 42px;
 
   border-radius: 50%;
+
   background: #e9f7ef;
   color: #146c43;
 
@@ -1295,12 +1988,15 @@ export default {
   .vs-divider {
     width: 34px;
     height: 34px;
+
     font-size: 0.7rem;
   }
 
   .vs-player {
     min-height: 52px;
+
     padding: 0.55rem;
+
     font-size: 1rem;
   }
 }
@@ -1313,7 +2009,8 @@ export default {
   align-items: center;
   justify-content: space-between;
 
-  padding: 0.65rem 0.7rem;
+  padding:
+    0.65rem 0.7rem;
 
   border: 0;
   border-radius: 0.6rem;
@@ -1326,11 +2023,13 @@ export default {
 }
 
 .player-row + .player-row {
-  border-top: 1px solid #f1f3f5;
+  border-top:
+    1px solid #f1f3f5;
 }
 
 .player-row:disabled {
   opacity: 1;
+
   color: #212529;
 }
 
@@ -1344,7 +2043,10 @@ export default {
 }
 
 .player-row:focus-visible {
-  outline: 3px solid rgba(25, 135, 84, 0.25);
+  outline:
+    3px solid
+    rgba(25, 135, 84, 0.25);
+
   outline-offset: 1px;
 }
 
@@ -1381,10 +2083,13 @@ export default {
 }
 
 .idle-courts {
-  border: 1px solid #dee2e6;
+  border:
+    1px solid #dee2e6;
+
   border-radius: 0.75rem;
 
-  padding: 0.8rem 1rem;
+  padding:
+    0.8rem 1rem;
 
   background: #f8f9fa;
 
@@ -1392,7 +2097,9 @@ export default {
 }
 
 .sit-out-card {
-  border: 1px solid #ffe69c;
+  border:
+    1px solid #ffe69c;
+
   border-radius: 0.875rem;
 
   padding: 1rem;
@@ -1411,6 +2118,7 @@ export default {
 .sit-out-label {
   font-size: 0.68rem;
   font-weight: 700;
+
   letter-spacing: 0.09em;
 
   color: #997404;
@@ -1442,6 +2150,7 @@ export default {
 .sit-out-players {
   display: flex;
   flex-wrap: wrap;
+
   gap: 0.5rem;
 }
 
@@ -1451,9 +2160,12 @@ export default {
 
   min-height: 40px;
 
-  padding: 0.45rem 0.7rem;
+  padding:
+    0.45rem 0.7rem;
 
-  border: 1px solid #ffe69c;
+  border:
+    1px solid #ffe69c;
+
   border-radius: 999px;
 
   background: #fff;
@@ -1463,7 +2175,9 @@ export default {
 
 .sit-out-player-number {
   margin-right: 0.35rem;
+
   color: #997404;
+
   font-size: 0.8rem;
 }
 
@@ -1471,6 +2185,7 @@ export default {
   margin-top: 0.75rem;
 
   font-size: 0.85rem;
+
   color: #664d03;
 }
 
@@ -1490,9 +2205,12 @@ export default {
     align-items: flex-start;
   }
 
-  .round-card-header > div:last-child {
+  .round-card-header
+    > div:last-child {
     flex-direction: column;
-    align-items: flex-end !important;
+
+    align-items:
+      flex-end !important;
   }
 
   .round-close-button {
@@ -1503,18 +2221,25 @@ export default {
     padding: 0.75rem;
   }
 
-.player-row {
-  min-height: 52px;
-  font-size: 1.05rem;
+  .player-row {
+    min-height: 52px;
+
+    font-size: 1.05rem;
+  }
 }
-}
-  .sub-modal-box {
+
+.sub-modal-box {
   background: #fff;
+
   border-radius: 1rem;
+
   padding: 1.25rem;
+
   max-width: 460px;
   width: 100%;
+
   max-height: 85vh;
+
   overflow-y: auto;
 }
 
@@ -1522,16 +2247,21 @@ export default {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
+
   gap: 1rem;
 
   padding-bottom: 1rem;
-  border-bottom: 1px solid #e9ecef;
+
+  border-bottom:
+    1px solid #e9ecef;
 }
 
 .sub-modal-eyebrow {
   font-size: 0.68rem;
   font-weight: 700;
+
   letter-spacing: 0.1em;
+
   color: #198754;
 }
 
@@ -1551,6 +2281,7 @@ export default {
   padding: 0;
 
   border-radius: 50%;
+
   background: #f1f3f5;
 
   font-size: 1.1rem;
@@ -1558,12 +2289,15 @@ export default {
 
 .sub-current-player {
   margin-top: 1rem;
+
   padding: 1rem;
 
   border-radius: 0.875rem;
 
   background: #f8f9fa;
-  border: 1px solid #e9ecef;
+
+  border:
+    1px solid #e9ecef;
 }
 
 .sub-current-player-name {
@@ -1580,6 +2314,7 @@ export default {
 
 .sub-player-list {
   display: grid;
+
   gap: 0.6rem;
 }
 
@@ -1590,11 +2325,15 @@ export default {
   display: flex;
   align-items: center;
   justify-content: space-between;
+
   gap: 1rem;
 
-  padding: 0.7rem 0.85rem;
+  padding:
+    0.7rem 0.85rem;
 
-  border: 1px solid #ced4da;
+  border:
+    1px solid #ced4da;
+
   border-radius: 0.75rem;
 
   background: #fff;
@@ -1606,11 +2345,15 @@ export default {
 .sub-player-option:hover,
 .sub-player-option:focus-visible {
   border-color: #198754;
+
   background: #f0f8f4;
 }
 
 .sub-player-option:focus-visible {
-  outline: 3px solid rgba(25, 135, 84, 0.25);
+  outline:
+    3px solid
+    rgba(25, 135, 84, 0.25);
+
   outline-offset: 1px;
 }
 
@@ -1631,9 +2374,11 @@ export default {
 .sub-modal-note {
   display: flex;
   align-items: flex-start;
+
   gap: 0.45rem;
 
   margin-top: 1rem;
+
   padding: 0.75rem;
 
   border-radius: 0.65rem;
@@ -1641,12 +2386,15 @@ export default {
   background: #fff8e1;
 
   color: #664d03;
+
   font-size: 0.85rem;
 }
 
 .sub-cancel-button {
   min-height: 48px;
+
   border-radius: 0.75rem;
+
   font-weight: 600;
 }
 
@@ -1659,10 +2407,12 @@ export default {
     max-width: none;
     max-height: 88vh;
 
-    border-radius: 1rem 1rem 0 0;
+    border-radius:
+      1rem 1rem 0 0;
 
     padding-bottom: calc(
-      1.25rem + env(safe-area-inset-bottom)
+      1.25rem +
+      env(safe-area-inset-bottom)
     );
   }
 
@@ -1674,7 +2424,8 @@ export default {
     font-size: 1.05rem;
   }
 }
-  /* Checkpoint 4: accessibility and mobile readability polish */
+
+/* Checkpoint 4 accessibility/mobile */
 
 button,
 select,
@@ -1687,7 +2438,10 @@ button:focus-visible,
 select:focus-visible,
 textarea:focus-visible,
 input:focus-visible {
-  outline: 3px solid rgba(25, 135, 84, 0.28);
+  outline:
+    3px solid
+    rgba(25, 135, 84, 0.28);
+
   outline-offset: 2px;
 }
 
@@ -1715,25 +2469,35 @@ input:focus-visible {
 
   .view-toggle .btn {
     min-height: 48px;
+
     font-size: 1rem;
   }
 
-  .player-number-toggle .form-check-label {
+  .player-number-toggle
+    .form-check-label {
     font-size: 1rem;
   }
 
   .round-card-header {
     flex-direction: column;
     align-items: stretch;
+
     gap: 0.75rem;
+
     padding: 1rem;
   }
 
-  .round-card-header > div:last-child {
+  .round-card-header
+    > div:last-child {
     width: 100%;
+
     flex-direction: row;
-    align-items: center !important;
-    justify-content: space-between;
+
+    align-items:
+      center !important;
+
+    justify-content:
+      space-between;
   }
 
   .round-title {
@@ -1742,12 +2506,16 @@ input:focus-visible {
 
   .round-status {
     font-size: 0.8rem;
-    padding: 0.4rem 0.7rem;
+
+    padding:
+      0.4rem 0.7rem;
   }
 
   .round-close-button {
     min-height: 48px;
+
     font-size: 0.95rem;
+
     padding-left: 0.85rem;
     padding-right: 0.85rem;
   }
@@ -1766,18 +2534,22 @@ input:focus-visible {
 
   .player-row {
     min-height: 56px;
+
     padding: 0.75rem;
+
     font-size: 1.08rem;
   }
 
   .vs-player {
     min-height: 56px;
+
     font-size: 1.05rem;
   }
 
   .player-number {
     min-width: 30px;
     height: 30px;
+
     font-size: 0.82rem;
   }
 
@@ -1791,6 +2563,7 @@ input:focus-visible {
 
   .sit-out-player {
     min-height: 44px;
+
     font-size: 1rem;
   }
 
