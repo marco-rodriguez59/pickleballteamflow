@@ -1,9 +1,18 @@
 <template>
   <div>
+    <!-- =========================================================
+         GAME SETUP
+    ========================================================== -->
     <section class="setup-section mb-4">
       <div class="text-center mb-4">
-        <div class="app-eyebrow">PICKLEBALL TEAM FLOW</div>
-        <h1 class="page-title mb-2">Pickleball Court Assignments</h1>
+        <div class="app-eyebrow">
+          PICKLEBALL TEAM FLOW
+        </div>
+
+        <h1 class="page-title mb-2">
+          Pickleball Court Assignments
+        </h1>
+
         <p class="text-secondary mb-0">
           Set up your players, courts, and rounds.
         </p>
@@ -12,14 +21,21 @@
       <ion-card class="setup-card">
         <ion-card-content class="setup-card-content">
           <div class="setup-heading">
-            <div class="setup-icon" aria-hidden="true">
+            <div
+              class="setup-icon"
+              aria-hidden="true"
+            >
               <ion-icon :icon="peopleOutline" />
             </div>
 
             <div>
-              <h2 class="h5 mb-0">Game Setup</h2>
+              <h2 class="h5 mb-0">
+                Game Setup
+              </h2>
+
               <div class="small text-secondary">
-                Everything you need to create your court assignments.
+                Everything you need to create your court
+                assignments.
               </div>
             </div>
           </div>
@@ -117,7 +133,9 @@
                 </ion-select-option>
               </ion-select>
 
-              <div class="small text-secondary setting-helper">
+              <div
+                class="small text-secondary setting-helper"
+              >
                 {{ courtCount * 4 }} playing spots
               </div>
             </div>
@@ -141,7 +159,9 @@
                 </ion-select-option>
               </ion-select>
 
-              <div class="small text-secondary setting-helper">
+              <div
+                class="small text-secondary setting-helper"
+              >
                 Planned games
               </div>
             </div>
@@ -222,17 +242,24 @@
       </ion-card>
     </section>
 
-    <div id="message" class="mt-3"></div>
+    <!-- Existing message system intentionally preserved -->
+    <div
+      id="message"
+      class="mt-3"
+    ></div>
 
-    <section class="assignments-section mt-4">
-      <div class="assignments-heading mb-3">
+    <!-- =========================================================
+         COURT ASSIGNMENTS
+    ========================================================== -->
+    <section class="assignments-section">
+      <div class="assignments-heading">
         <div>
-          <div class="section-eyebrow">YOUR GAME</div>
+          <div class="section-eyebrow">
+            YOUR GAME
+          </div>
 
-          <div
-            class="d-flex flex-column flex-sm-row align-items-sm-end gap-1 gap-sm-2"
-          >
-            <h2 class="assignments-title mb-0">
+          <div class="assignment-title-row">
+            <h2 class="assignments-title">
               Court Assignments
             </h2>
 
@@ -245,106 +272,106 @@
             </span>
           </div>
         </div>
-
-        <div class="assignment-controls mt-2 mt-sm-0">
-          <div
-            class="btn-group view-toggle"
-            role="group"
-            aria-label="Court assignment view"
-          >
-            <button
-              type="button"
-              class="btn"
-              :class="
-                courtView === 'list'
-                  ? 'btn-success'
-                  : 'btn-outline-success'
-              "
-              :aria-pressed="courtView === 'list'"
-              @click="courtView = 'list'"
-            >
-              ☰ List
-            </button>
-
-            <button
-              type="button"
-              class="btn"
-              :class="
-                courtView === 'vs'
-                  ? 'btn-success'
-                  : 'btn-outline-success'
-              "
-              :aria-pressed="courtView === 'vs'"
-              @click="courtView = 'vs'"
-            >
-              VS
-            </button>
-          </div>
-
-          <div class="form-check player-number-toggle">
-            <input
-              class="form-check-input"
-              type="checkbox"
-              id="showNumbers"
-              v-model="showNumbers"
-            >
-
-            <label
-              class="form-check-label"
-              for="showNumbers"
-            >
-              Show player numbers
-            </label>
-          </div>
-        </div>
       </div>
 
-      <div
-        v-if="!schedule.length"
-        class="empty-assignments text-center"
+      <!-- Assignment Controls -->
+      <ion-card
+        v-if="schedule.length"
+        class="assignment-controls-card"
       >
-        <div
-          class="empty-icon"
-          aria-hidden="true"
-        >
-          🏓
-        </div>
+        <ion-card-content class="assignment-controls-content">
+          <div class="view-control">
+            <div class="control-label">
+              Court View
+            </div>
 
-        <h3 class="h5 mb-2">
-          Ready when you are
-        </h3>
+            <ion-segment
+              v-model="courtView"
+              class="view-segment"
+              aria-label="Court assignment view"
+            >
+              <ion-segment-button value="list">
+                <ion-icon :icon="listOutline" />
+                <ion-label>List</ion-label>
+              </ion-segment-button>
 
-        <p class="text-secondary mb-0">
-          Enter at least <strong>8 players</strong>,
-          choose your courts and rounds, then select
-          <strong>Generate Court Assignments</strong>.
-        </p>
-      </div>
+              <ion-segment-button value="vs">
+                <ion-icon :icon="gridOutline" />
+                <ion-label>VS</ion-label>
+              </ion-segment-button>
+            </ion-segment>
+          </div>
 
+          <div class="number-control">
+            <div>
+              <div class="control-label">
+                Player Numbers
+              </div>
+
+              <div class="control-help">
+                Show roster numbers beside names.
+              </div>
+            </div>
+
+            <ion-toggle
+              v-model="showNumbers"
+              aria-label="Show player numbers"
+            />
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- Empty State -->
+      <ion-card
+        v-if="!schedule.length"
+        class="empty-assignments"
+      >
+        <ion-card-content class="empty-content">
+          <div
+            class="empty-icon"
+            aria-hidden="true"
+          >
+            <ion-icon :icon="peopleOutline" />
+          </div>
+
+          <h3>
+            Ready when you are
+          </h3>
+
+          <p>
+            Enter at least <strong>8 players</strong>,
+            choose your courts and rounds, then select
+            <strong>Generate Court Assignments</strong>.
+          </p>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- Rounds -->
       <div
-        v-if="schedule.length > 0"
+        v-if="schedule.length"
         class="rounds-list"
       >
-        <article
+        <ion-card
           v-for="round in schedule"
           :key="round.index"
-          class="round-card card shadow-sm mb-3"
+          class="round-card"
+          :class="{
+            'round-card-completed': round.closed
+          }"
         >
-          <div
-            class="round-card-header"
-            :class="{ 'round-closed': round.closed }"
-          >
-            <div>
+          <!-- Round Header -->
+          <div class="round-card-header">
+            <div class="round-heading">
               <div class="round-label">
                 ROUND
               </div>
 
-              <h3 class="round-title mb-0">
+              <h3 class="round-title">
                 Round {{ round.index }}
               </h3>
             </div>
 
-            <div class="d-flex align-items-center gap-2">
+            <div class="round-actions">
               <span
                 class="round-status"
                 :class="
@@ -353,68 +380,140 @@
                     : 'round-status-open'
                 "
               >
-                {{ round.closed ? 'Completed' : 'Open' }}
-              </span>
-
-              <button
-                class="btn round-close-button"
-                :class="
-                  round.closed
-                    ? 'btn-outline-secondary'
-                    : 'btn-outline-success'
-                "
-                data-bs-toggle="collapse"
-                :data-bs-target="'#round-' + round.index"
-                @click="toggleRoundClosed(round)"
-              >
                 {{
                   round.closed
-                    ? '↻ Reopen'
-                    : '✓ Close Round'
+                    ? 'Completed'
+                    : 'Open'
                 }}
-              </button>
+              </span>
+
+              <ion-button
+                size="small"
+                fill="outline"
+                :color="
+                  round.closed
+                    ? 'medium'
+                    : 'success'
+                "
+                class="round-action-button"
+                @click="toggleRoundClosed(round)"
+              >
+                <ion-icon
+                  :icon="
+                    round.closed
+                      ? refreshOutline
+                      : checkmarkCircleOutline
+                  "
+                  slot="start"
+                />
+
+                {{
+                  round.closed
+                    ? 'Reopen'
+                    : 'Close Round'
+                }}
+              </ion-button>
             </div>
           </div>
 
+          <!-- Closed rounds stay visible but collapsed -->
           <div
-            :id="'round-' + round.index"
-            class="collapse"
-            :class="{ show: !round.closed }"
+            v-show="!round.closed"
+            class="round-content"
           >
-            <div class="card-body round-card-body">
-              <div class="courts-grid">
-                <div
-                  v-for="court in round.courts"
-                  :key="court.courtNumber"
-                  class="court-card"
-                >
-                  <div class="court-card-header">
-                    <span
-                      class="court-icon"
-                      aria-hidden="true"
-                    >
-                      🏓
-                    </span>
-
-                    <h4 class="court-title mb-0">
-                      Court {{ court.courtNumber }}
-                    </h4>
+            <div class="courts-grid">
+              <div
+                v-for="court in round.courts"
+                :key="court.courtNumber"
+                class="court-card"
+              >
+                <div class="court-card-header">
+                  <div class="court-heading-icon">
+                    <ion-icon :icon="peopleOutline" />
                   </div>
 
-                  <div
-                    v-if="courtView === 'list'"
-                    class="court-players"
+                  <h4 class="court-title">
+                    Court {{ court.courtNumber }}
+                  </h4>
+                </div>
+
+                <!-- ===========================
+                     LIST VIEW
+                ============================ -->
+                <div
+                  v-if="courtView === 'list'"
+                  class="court-players"
+                >
+                  <button
+                    v-for="player in court.players"
+                    :key="player.id"
+                    type="button"
+                    class="player-row"
+                    :class="{
+                      'player-row-substitutable':
+                        !round.closed &&
+                        round.sitOut.length > 0
+                    }"
+                    :disabled="
+                      round.closed ||
+                      round.sitOut.length === 0
+                    "
+                    :aria-label="
+                      !round.closed &&
+                      round.sitOut.length > 0
+                        ? 'Substitute ' + player.name
+                        : player.name
+                    "
+                    @click="
+                      !round.closed &&
+                      round.sitOut.length > 0 &&
+                      openSubModal(
+                        round,
+                        court,
+                        player
+                      )
+                    "
                   >
+                    <span class="player-name">
+                      <span
+                        v-if="showNumbers"
+                        class="player-number"
+                      >
+                        {{ player.id }}
+                      </span>
+
+                      {{ player.name }}
+                    </span>
+
+                    <ion-icon
+                      v-if="
+                        !round.closed &&
+                        round.sitOut.length > 0
+                      "
+                      :icon="swapVerticalOutline"
+                      class="swap-indicator"
+                      aria-hidden="true"
+                    />
+                  </button>
+                </div>
+
+                <!-- ===========================
+                     VS VIEW
+                ============================ -->
+                <div
+                  v-else
+                  class="vs-matchup"
+                >
+                  <div class="vs-team">
+                    <div class="vs-team-label">
+                      Team 1
+                    </div>
+
                     <button
-                      v-for="player in court.players"
+                      v-for="player in court.players.slice(0, 2)"
                       :key="player.id"
                       type="button"
-                      class="player-row"
-                      :class="{
-                        'player-row-substitutable':
-                          !round.closed &&
-                          round.sitOut.length > 0
-                      }"
+                      class="vs-player"
                       :disabled="
                         round.closed ||
                         round.sitOut.length === 0
@@ -435,132 +534,83 @@
                         )
                       "
                     >
-                      <span class="player-name">
-                        <span
-                          v-if="showNumbers"
-                          class="player-number"
-                        >
-                          {{ player.id }}
-                        </span>
-
-                        {{ player.name }}
+                      <span
+                        v-if="showNumbers"
+                        class="player-number"
+                      >
+                        {{ player.id }}
                       </span>
 
-                      <span
-                        v-if="
-                          !round.closed &&
-                          round.sitOut.length > 0
-                        "
-                        class="swap-indicator"
-                        aria-hidden="true"
-                      >
-                        ↕
+                      <span>
+                        {{ player.name }}
                       </span>
                     </button>
                   </div>
 
                   <div
-                    v-else
-                    class="vs-matchup"
+                    class="vs-divider"
+                    aria-hidden="true"
                   >
-                    <div class="vs-team">
-                      <div class="vs-team-label">
-                        Team 1
-                      </div>
+                    VS
+                  </div>
 
-                      <button
-                        v-for="player in court.players.slice(0, 2)"
-                        :key="player.id"
-                        type="button"
-                        class="vs-player"
-                        :disabled="
-                          round.closed ||
-                          round.sitOut.length === 0
-                        "
-                        :aria-label="
-                          !round.closed &&
-                          round.sitOut.length > 0
-                            ? 'Substitute ' + player.name
-                            : player.name
-                        "
-                        @click="
-                          !round.closed &&
-                          round.sitOut.length > 0 &&
-                          openSubModal(
-                            round,
-                            court,
-                            player
-                          )
-                        "
-                      >
-                        <span
-                          v-if="showNumbers"
-                          class="player-number"
-                        >
-                          {{ player.id }}
-                        </span>
-
-                        <span>{{ player.name }}</span>
-                      </button>
+                  <div class="vs-team">
+                    <div class="vs-team-label">
+                      Team 2
                     </div>
 
-                    <div
-                      class="vs-divider"
-                      aria-hidden="true"
+                    <button
+                      v-for="player in court.players.slice(2, 4)"
+                      :key="player.id"
+                      type="button"
+                      class="vs-player"
+                      :disabled="
+                        round.closed ||
+                        round.sitOut.length === 0
+                      "
+                      :aria-label="
+                        !round.closed &&
+                        round.sitOut.length > 0
+                          ? 'Substitute ' + player.name
+                          : player.name
+                      "
+                      @click="
+                        !round.closed &&
+                        round.sitOut.length > 0 &&
+                        openSubModal(
+                          round,
+                          court,
+                          player
+                        )
+                      "
                     >
-                      VS
-                    </div>
-
-                    <div class="vs-team">
-                      <div class="vs-team-label">
-                        Team 2
-                      </div>
-
-                      <button
-                        v-for="player in court.players.slice(2, 4)"
-                        :key="player.id"
-                        type="button"
-                        class="vs-player"
-                        :disabled="
-                          round.closed ||
-                          round.sitOut.length === 0
-                        "
-                        :aria-label="
-                          !round.closed &&
-                          round.sitOut.length > 0
-                            ? 'Substitute ' + player.name
-                            : player.name
-                        "
-                        @click="
-                          !round.closed &&
-                          round.sitOut.length > 0 &&
-                          openSubModal(
-                            round,
-                            court,
-                            player
-                          )
-                        "
+                      <span
+                        v-if="showNumbers"
+                        class="player-number"
                       >
-                        <span
-                          v-if="showNumbers"
-                          class="player-number"
-                        >
-                          {{ player.id }}
-                        </span>
+                        {{ player.id }}
+                      </span>
 
-                        <span>{{ player.name }}</span>
-                      </button>
-                    </div>
+                      <span>
+                        {{ player.name }}
+                      </span>
+                    </button>
                   </div>
                 </div>
               </div>
+            </div>
 
-              <div
-                v-if="round.courts.length < courtCount"
-                class="idle-courts mt-3"
-              >
-                <span aria-hidden="true">ℹ️</span>
+            <!-- Idle Court Notice -->
+            <div
+              v-if="round.courts.length < courtCount"
+              class="idle-courts"
+            >
+              <ion-icon
+                :icon="informationCircleOutline"
+                aria-hidden="true"
+              />
 
+              <span>
                 {{ courtCount - round.courts.length }}
                 court{{
                   courtCount - round.courts.length === 1
@@ -568,61 +618,88 @@
                     : 's'
                 }}
                 idle this round.
+              </span>
+            </div>
+
+            <!-- Sit Out -->
+            <div
+              v-if="round.sitOut.length"
+              class="sit-out-card"
+            >
+              <div class="sit-out-heading">
+                <div>
+                  <div class="sit-out-label">
+                    THIS ROUND
+                  </div>
+
+                  <h4 class="sit-out-title">
+                    Sit Out
+                  </h4>
+                </div>
+
+                <span class="sit-out-count">
+                  {{ round.sitOut.length }}
+                </span>
+              </div>
+
+              <div class="sit-out-players">
+                <span
+                  v-for="player in round.sitOut"
+                  :key="player.id"
+                  class="sit-out-player"
+                >
+                  <span
+                    v-if="showNumbers"
+                    class="sit-out-player-number"
+                  >
+                    {{ player.id }}
+                  </span>
+
+                  {{ player.name }}
+                </span>
               </div>
 
               <div
-                v-if="round.sitOut.length"
-                class="sit-out-card mt-3"
+                v-if="!round.closed"
+                class="sit-out-help"
               >
-                <div class="sit-out-heading">
-                  <div>
-                    <div class="sit-out-label">
-                      THIS ROUND
-                    </div>
+                <ion-icon
+                  :icon="informationCircleOutline"
+                  aria-hidden="true"
+                />
 
-                    <h4 class="sit-out-title mb-0">
-                      Sit Out
-                    </h4>
-                  </div>
-
-                  <span class="sit-out-count">
-                    {{ round.sitOut.length }}
-                  </span>
-                </div>
-
-                <div class="sit-out-players">
-                  <span
-                    v-for="player in round.sitOut"
-                    :key="player.id"
-                    class="sit-out-player"
-                  >
-                    <span
-                      v-if="showNumbers"
-                      class="sit-out-player-number"
-                    >
-                      {{ player.id }}
-                    </span>
-
-                    {{ player.name }}
-                  </span>
-                </div>
-
-                <div
-                  v-if="!round.closed"
-                  class="sit-out-help"
-                >
+                <span>
                   Need to make a change? Tap any court
                   player to swap them with someone sitting
                   out.
-                </div>
+                </span>
               </div>
             </div>
           </div>
-        </article>
+
+          <!-- Closed Round Summary -->
+          <div
+            v-if="round.closed"
+            class="closed-round-summary"
+          >
+            <ion-icon
+              :icon="checkmarkCircleOutline"
+              aria-hidden="true"
+            />
+
+            <span>
+              Round {{ round.index }} is complete.
+              Reopen it to view or make changes.
+            </span>
+          </div>
+        </ion-card>
       </div>
     </section>
 
-    <!-- Substitution modal -->
+    <!-- =========================================================
+         SUBSTITUTION MODAL
+         Intentionally still custom until Checkpoint 8D
+    ========================================================== -->
     <div
       v-if="subModal.show"
       class="sub-modal-overlay"
@@ -644,7 +721,7 @@
 
             <h2
               id="subModalTitle"
-              class="sub-modal-title mb-0"
+              class="sub-modal-title"
             >
               Swap Player
             </h2>
@@ -710,8 +787,9 @@
 
         <div class="sub-modal-note">
           <span aria-hidden="true">ℹ️</span>
-          {{ subModal.player?.name }} will move to Sit Out
-          for this round.
+
+          {{ subModal.player?.name }}
+          will move to Sit Out for this round.
         </div>
 
         <div class="d-grid mt-3">
@@ -734,16 +812,25 @@ import {
   IonCard,
   IonCardContent,
   IonIcon,
+  IonLabel,
+  IonSegment,
+  IonSegmentButton,
   IonSelect,
   IonSelectOption,
-  IonTextarea
+  IonTextarea,
+  IonToggle
 } from '@ionic/vue';
 
 import {
   cameraOutline,
+  checkmarkCircleOutline,
+  gridOutline,
+  informationCircleOutline,
+  listOutline,
   peopleOutline,
   playOutline,
   refreshOutline,
+  swapVerticalOutline,
   trashOutline
 } from 'ionicons/icons';
 
@@ -763,17 +850,26 @@ export default {
     IonCard,
     IonCardContent,
     IonIcon,
+    IonLabel,
+    IonSegment,
+    IonSegmentButton,
     IonSelect,
     IonSelectOption,
-    IonTextarea
+    IonTextarea,
+    IonToggle
   },
 
   setup() {
     return {
       cameraOutline,
+      checkmarkCircleOutline,
+      gridOutline,
+      informationCircleOutline,
+      listOutline,
       peopleOutline,
       playOutline,
       refreshOutline,
+      swapVerticalOutline,
       trashOutline
     };
   },
@@ -812,7 +908,9 @@ export default {
     },
 
     hasOpenRounds() {
-      return this.schedule.some(round => !round.closed);
+      return this.schedule.some(
+        round => !round.closed
+      );
     }
   },
 
@@ -1350,55 +1448,40 @@ export default {
 </script>
 
 <style scoped>
-.sub-modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1050;
+/* =========================================================
+   PAGE
+========================================================= */
 
-  padding-top: calc(
-    16px + env(safe-area-inset-top)
-  );
-  padding-right: calc(
-    16px + env(safe-area-inset-right)
-  );
-  padding-bottom: calc(
-    16px + env(safe-area-inset-bottom)
-  );
-  padding-left: calc(
-    16px + env(safe-area-inset-left)
-  );
+.app-eyebrow,
+.section-eyebrow {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  color: #198754;
 }
 
 .app-eyebrow {
   font-size: 0.75rem;
-  font-weight: 700;
   letter-spacing: 0.12em;
-  color: #198754;
 }
 
 .page-title {
-  font-size: clamp(
-    1.7rem,
-    5vw,
-    2.5rem
-  );
+  font-size: clamp(1.7rem, 5vw, 2.5rem);
   font-weight: 700;
   line-height: 1.15;
 }
 
-/* Ionic Game Setup */
+/* =========================================================
+   GAME SETUP
+========================================================= */
 
 .setup-card {
   margin: 0;
   border-radius: 1rem;
+  background: #ffffff;
   box-shadow:
     0 3px 14px
     rgba(0, 0, 0, 0.08);
-  background: #ffffff;
 }
 
 .setup-card-content {
@@ -1410,8 +1493,7 @@ export default {
   align-items: center;
   gap: 0.75rem;
 
-  border-bottom:
-    1px solid #dee2e6;
+  border-bottom: 1px solid #dee2e6;
 
   padding-bottom: 1rem;
   margin-bottom: 1.5rem;
@@ -1421,13 +1503,13 @@ export default {
   width: 44px;
   height: 44px;
 
-  border-radius: 50%;
-
   display: inline-flex;
   align-items: center;
   justify-content: center;
 
   flex-shrink: 0;
+
+  border-radius: 50%;
 
   background: #e9f7ef;
   color: #0e4b2e;
@@ -1445,9 +1527,20 @@ export default {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
+
   gap: 1rem;
 
   margin-bottom: 0.65rem;
+}
+
+.setting-label {
+  display: block;
+
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+
+  letter-spacing: 0.04em;
 }
 
 .roster-label {
@@ -1503,24 +1596,12 @@ export default {
 }
 
 .setting-card {
-  border:
-    1px solid #dee2e6;
-
+  border: 1px solid #dee2e6;
   border-radius: 0.875rem;
 
   padding: 0.85rem;
 
-  background: #fff;
-}
-
-.setting-label {
-  display: block;
-
-  font-size: 0.8rem;
-  font-weight: 700;
-
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  background: #ffffff;
 }
 
 .setting-select {
@@ -1538,18 +1619,15 @@ export default {
 
 .setting-helper {
   margin-top: 0.6rem;
+
   text-align: center;
 }
 
 .game-summary {
   display: grid;
+  grid-template-columns: repeat(4, 1fr);
 
-  grid-template-columns:
-    repeat(4, 1fr);
-
-  border:
-    1px solid #dee2e6;
-
+  border: 1px solid #dee2e6;
   border-radius: 0.875rem;
 
   overflow: hidden;
@@ -1560,13 +1638,11 @@ export default {
 .game-summary > div {
   text-align: center;
 
-  padding:
-    0.85rem 0.25rem;
+  padding: 0.85rem 0.25rem;
 }
 
 .game-summary > div + div {
-  border-left:
-    1px solid #dee2e6;
+  border-left: 1px solid #dee2e6;
 }
 
 .game-summary strong,
@@ -1614,7 +1690,6 @@ export default {
   --border-radius: 0.75rem;
 
   min-height: 50px;
-
   margin: 0;
 
   font-weight: 600;
@@ -1626,143 +1701,256 @@ export default {
   --color: #146c43;
 }
 
-@media (max-width: 575.98px) {
-  .setup-card-content {
-    padding: 1rem;
-  }
+/* =========================================================
+   ASSIGNMENT HEADER / CONTROLS
+========================================================= */
 
-  .roster-textarea {
-    font-size: 16px;
-  }
-
-  .setting-card {
-    padding: 0.7rem;
-  }
-
-  .game-summary strong {
-    font-size: 1rem;
-  }
-
-  .game-summary span {
-    font-size: 0.68rem;
-  }
-
-  .secondary-actions {
-    grid-template-columns: 1fr;
-  }
-}
-
-.section-eyebrow {
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.11em;
-  color: #198754;
+.assignments-section {
+  margin-top: 1.75rem;
 }
 
 .assignments-heading {
+  margin-bottom: 1rem;
+}
+
+.assignment-title-row {
   display: flex;
-  justify-content: space-between;
   align-items: flex-end;
-  gap: 1rem;
+
+  gap: 0.6rem;
 }
 
 .assignments-title {
-  font-size: clamp(
-    1.4rem,
-    4vw,
-    2rem
-  );
+  margin: 0;
 
+  font-size: clamp(1.4rem, 4vw, 2rem);
   font-weight: 700;
 }
 
 .round-count-text {
+  padding-bottom: 0.15rem;
+
   font-size: 0.9rem;
   color: #6c757d;
-  padding-bottom: 0.15rem;
 }
 
-.player-number-toggle {
-  min-height: 44px;
+.assignment-controls-card {
+  margin:
+    0 0 1rem 0;
+
+  border-radius: 1rem;
+  box-shadow:
+    0 2px 10px
+    rgba(0, 0, 0, 0.06);
+}
+
+.assignment-controls-content {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(220px, 0.75fr);
+
+  align-items: end;
+
+  gap: 1rem;
+
+  padding: 1rem;
+}
+
+.control-label {
+  margin-bottom: 0.4rem;
+
+  font-size: 0.78rem;
+  font-weight: 700;
+
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+
+  color: #495057;
+}
+
+.control-help {
+  font-size: 0.82rem;
+
+  color: #6c757d;
+}
+
+.view-segment {
+  --background: #eef2ef;
+
+  min-height: 48px;
+}
+
+.view-segment ion-segment-button {
+  --color: #495057;
+  --color-checked: #ffffff;
+  --indicator-color: #0e4b2e;
+
+  min-height: 46px;
+
+  font-weight: 700;
+}
+
+.view-segment ion-icon {
+  margin-right: 0.35rem;
+
+  font-size: 18px;
+}
+
+.number-control {
+  min-height: 56px;
 
   display: flex;
   align-items: center;
+  justify-content: space-between;
 
-  gap: 0.35rem;
+  gap: 1rem;
+
+  padding:
+    0.5rem 0.25rem;
 }
 
-.player-number-toggle
-.form-check-input {
-  width: 1.25rem;
-  height: 1.25rem;
+.number-control ion-toggle {
+  --track-background-checked: #a8c735;
+  --handle-background-checked: #0e4b2e;
 
-  margin-top: 0;
+  flex-shrink: 0;
 }
 
-.player-number-toggle
-.form-check-label {
-  font-size: 0.95rem;
-}
+/* =========================================================
+   EMPTY STATE
+========================================================= */
 
 .empty-assignments {
+  margin: 0;
+
   border:
     2px dashed #ced4da;
 
   border-radius: 1rem;
 
+  box-shadow: none;
+
+  background: #ffffff;
+}
+
+.empty-content {
   padding:
     2.5rem 1.25rem;
 
-  background: #fff;
+  text-align: center;
 }
 
 .empty-icon {
-  font-size: 2rem;
+  width: 60px;
+  height: 60px;
 
-  margin-bottom: 0.75rem;
-}
-
-.round-card {
-  border: 0;
-
-  border-radius: 1rem;
-
-  overflow: hidden;
-}
-
-.round-card-header {
-  min-height: 72px;
-
-  padding:
-    1rem 1.1rem;
-
-  background: #f8f9fa;
-
-  border-bottom:
-    1px solid #e9ecef;
-
-  display: flex;
-  justify-content: space-between;
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
+
+  margin-bottom: 0.8rem;
+
+  border-radius: 50%;
+
+  background: #e9f7ef;
+  color: #0e4b2e;
+}
+
+.empty-icon ion-icon {
+  font-size: 30px;
+}
+
+.empty-content h3 {
+  margin:
+    0 0 0.5rem;
+
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.empty-content p {
+  max-width: 520px;
+
+  margin: 0 auto;
+
+  color: #6c757d;
+  line-height: 1.5;
+}
+
+/* =========================================================
+   ROUND CARDS
+========================================================= */
+
+.rounds-list {
+  display: grid;
 
   gap: 1rem;
 }
 
-.round-card-header.round-closed {
-  background: #f1f3f5;
+.round-card {
+  margin: 0;
+
+  border-radius: 1rem;
+
+  overflow: hidden;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 3px 14px
+    rgba(0, 0, 0, 0.07);
+}
+
+.round-card-completed {
+  background: #fafafa;
+}
+
+.round-card-header {
+  min-height: 76px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 1rem;
+
+  padding:
+    1rem 1.1rem;
+
+  border-bottom:
+    1px solid #e9ecef;
+
+  background: #f8faf9;
+}
+
+.round-card-completed
+.round-card-header {
+  background: #f1f3f2;
 }
 
 .round-label {
   font-size: 0.68rem;
   font-weight: 700;
+
   letter-spacing: 0.1em;
 
   color: #6c757d;
 }
 
 .round-title {
-  font-size: 1.25rem;
+  margin:
+    0.1rem 0 0;
+
+  font-size: 1.3rem;
   font-weight: 700;
+}
+
+.round-actions {
+  display: flex;
+  align-items: center;
+
+  gap: 0.65rem;
 }
 
 .round-status {
@@ -1772,9 +1960,9 @@ export default {
   border-radius: 999px;
 
   padding:
-    0.3rem 0.65rem;
+    0.35rem 0.7rem;
 
-  font-size: 0.75rem;
+  font-size: 0.76rem;
   font-weight: 700;
 }
 
@@ -1788,21 +1976,49 @@ export default {
   color: #495057;
 }
 
-.round-close-button {
-  min-height: 44px;
+.round-action-button {
+  --border-radius: 0.65rem;
 
-  border-radius: 0.65rem;
+  min-height: 44px;
+  margin: 0;
 
   font-weight: 600;
+  text-transform: none;
 }
 
-.round-card-body {
+.round-content {
   padding: 1rem;
 }
 
+.closed-round-summary {
+  min-height: 68px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 0.6rem;
+
+  padding: 1rem;
+
+  color: #6c757d;
+
+  font-size: 0.9rem;
+}
+
+.closed-round-summary ion-icon {
+  flex-shrink: 0;
+
+  font-size: 22px;
+
+  color: #198754;
+}
+
+/* =========================================================
+   COURTS
+========================================================= */
+
 .courts-grid {
   display: grid;
-
   grid-template-columns:
     repeat(2, minmax(0, 1fr));
 
@@ -1810,200 +2026,73 @@ export default {
 }
 
 .court-card {
-  border:
-    1px solid #dee2e6;
-
-  border-radius: 0.875rem;
-
   overflow: hidden;
 
-  background: #fff;
+  border:
+    1px solid #dfe6e2;
+
+  border-radius: 0.9rem;
+
+  background: #ffffff;
 }
 
 .court-card-header {
+  min-height: 54px;
+
   display: flex;
   align-items: center;
 
-  gap: 0.5rem;
+  gap: 0.6rem;
 
   padding:
-    0.8rem 1rem;
-
-  background: #e9f7ef;
+    0.75rem 0.9rem;
 
   border-bottom:
     1px solid #d1e7dd;
+
+  background: #edf8f1;
 }
 
-.court-icon {
-  font-size: 1rem;
-}
+.court-heading-icon {
+  width: 32px;
+  height: 32px;
 
-.court-title {
-  font-size: 1rem;
-  font-weight: 700;
-
-  color: #146c43;
-}
-
-.court-players {
-  padding: 0.45rem;
-}
-
-.assignment-controls {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-
-  gap: 0.5rem;
-}
-
-.view-toggle .btn {
-  min-height: 44px;
-  min-width: 76px;
-
-  font-weight: 600;
-}
-
-.vs-matchup {
-  display: grid;
-
-  grid-template-columns:
-    minmax(0, 1fr)
-    auto
-    minmax(0, 1fr);
-
-  align-items: stretch;
-
-  gap: 0.75rem;
-
-  padding: 0.75rem;
-}
-
-.vs-team {
-  display: flex;
-  flex-direction: column;
-
-  gap: 0.4rem;
-
-  min-width: 0;
-}
-
-.vs-team-label {
-  text-align: center;
-
-  font-size: 0.72rem;
-  font-weight: 700;
-
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-
-  color: #6c757d;
-
-  margin-bottom: 0.1rem;
-}
-
-.vs-player {
-  min-height: 50px;
-  width: 100%;
-
-  display: flex;
-  align-items: center;
-
-  gap: 0.45rem;
-
-  padding:
-    0.65rem 0.7rem;
-
-  border:
-    1px solid #dee2e6;
-
-  border-radius: 0.65rem;
-
-  background: #fff;
-  color: #212529;
-
-  font-size: 1rem;
-  font-weight: 600;
-
-  text-align: left;
-}
-
-.vs-player:not(:disabled):hover {
-  background: #f8f9fa;
-
-  border-color: #adb5bd;
-}
-
-.vs-player:focus-visible {
-  outline:
-    3px solid
-    rgba(25, 135, 84, 0.25);
-
-  outline-offset: 2px;
-}
-
-.vs-divider {
-  align-self: center;
-
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
 
-  width: 42px;
-  height: 42px;
+  flex-shrink: 0;
 
   border-radius: 50%;
 
-  background: #e9f7ef;
-  color: #146c43;
-
-  font-size: 0.8rem;
-  font-weight: 800;
+  background: #d9efdf;
+  color: #0e4b2e;
 }
 
-@media (max-width: 575.98px) {
-  .assignment-controls {
-    width: 100%;
-    align-items: stretch;
-  }
+.court-heading-icon ion-icon {
+  font-size: 18px;
+}
 
-  .view-toggle {
-    width: 100%;
-  }
+.court-title {
+  margin: 0;
 
-  .view-toggle .btn {
-    flex: 1;
-  }
+  font-size: 1rem;
+  font-weight: 700;
 
-  .player-number-toggle {
-    justify-content: flex-start;
-  }
+  color: #146c43;
+}
 
-  .vs-matchup {
-    gap: 0.4rem;
-    padding: 0.6rem;
-  }
+/* =========================================================
+   LIST VIEW PLAYERS
+========================================================= */
 
-  .vs-divider {
-    width: 34px;
-    height: 34px;
-
-    font-size: 0.7rem;
-  }
-
-  .vs-player {
-    min-height: 52px;
-
-    padding: 0.55rem;
-
-    font-size: 1rem;
-  }
+.court-players {
+  padding: 0.4rem;
 }
 
 .player-row {
   width: 100%;
-  min-height: 48px;
+  min-height: 52px;
 
   display: flex;
   align-items: center;
@@ -2018,7 +2107,9 @@ export default {
   background: transparent;
   color: #212529;
 
+  font-family: inherit;
   font-size: 1rem;
+
   text-align: left;
 }
 
@@ -2055,12 +2146,12 @@ export default {
 }
 
 .player-number {
+  min-width: 30px;
+  height: 30px;
+
   display: inline-flex;
   align-items: center;
   justify-content: center;
-
-  min-width: 28px;
-  height: 28px;
 
   margin-right: 0.45rem;
 
@@ -2069,40 +2160,167 @@ export default {
   background: #f1f3f5;
   color: #495057;
 
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 700;
 }
 
 .swap-indicator {
+  flex-shrink: 0;
+
   margin-left: 0.5rem;
 
-  font-size: 1.1rem;
-  font-weight: 700;
+  font-size: 20px;
 
   color: #198754;
 }
 
+/* =========================================================
+   VS VIEW
+========================================================= */
+
+.vs-matchup {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr)
+    auto
+    minmax(0, 1fr);
+
+  align-items: stretch;
+
+  gap: 0.75rem;
+
+  padding: 0.75rem;
+}
+
+.vs-team {
+  display: flex;
+  flex-direction: column;
+
+  min-width: 0;
+
+  gap: 0.4rem;
+}
+
+.vs-team-label {
+  margin-bottom: 0.1rem;
+
+  text-align: center;
+
+  font-size: 0.72rem;
+  font-weight: 700;
+
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+
+  color: #6c757d;
+}
+
+.vs-player {
+  width: 100%;
+  min-height: 52px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 0.45rem;
+
+  padding:
+    0.65rem 0.7rem;
+
+  border:
+    1px solid #dee2e6;
+
+  border-radius: 0.65rem;
+
+  background: #ffffff;
+  color: #212529;
+
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+
+  text-align: left;
+}
+
+.vs-player:not(:disabled):hover {
+  border-color: #adb5bd;
+
+  background: #f8f9fa;
+}
+
+.vs-player:focus-visible {
+  outline:
+    3px solid
+    rgba(25, 135, 84, 0.25);
+
+  outline-offset: 2px;
+}
+
+.vs-player:disabled {
+  opacity: 1;
+}
+
+.vs-divider {
+  align-self: center;
+
+  width: 42px;
+  height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #e9f7ef;
+  color: #146c43;
+
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+/* =========================================================
+   IDLE / SIT OUT
+========================================================= */
+
 .idle-courts {
+  display: flex;
+  align-items: center;
+
+  gap: 0.55rem;
+
+  margin-top: 1rem;
+
+  padding:
+    0.8rem 1rem;
+
   border:
     1px solid #dee2e6;
 
   border-radius: 0.75rem;
-
-  padding:
-    0.8rem 1rem;
 
   background: #f8f9fa;
 
   color: #495057;
 }
 
+.idle-courts ion-icon {
+  flex-shrink: 0;
+
+  font-size: 20px;
+
+  color: #6c757d;
+}
+
 .sit-out-card {
+  margin-top: 1rem;
+
+  padding: 1rem;
+
   border:
     1px solid #ffe69c;
 
   border-radius: 0.875rem;
-
-  padding: 1rem;
 
   background: #fff8e1;
 }
@@ -2125,15 +2343,17 @@ export default {
 }
 
 .sit-out-title {
-  font-size: 1.05rem;
+  margin: 0;
+
+  font-size: 1.08rem;
   font-weight: 700;
 
   color: #664d03;
 }
 
 .sit-out-count {
-  min-width: 32px;
-  height: 32px;
+  min-width: 34px;
+  height: 34px;
 
   display: inline-flex;
   align-items: center;
@@ -2155,10 +2375,10 @@ export default {
 }
 
 .sit-out-player {
+  min-height: 44px;
+
   display: inline-flex;
   align-items: center;
-
-  min-height: 40px;
 
   padding:
     0.45rem 0.7rem;
@@ -2168,7 +2388,7 @@ export default {
 
   border-radius: 999px;
 
-  background: #fff;
+  background: #ffffff;
 
   font-weight: 600;
 }
@@ -2176,71 +2396,88 @@ export default {
 .sit-out-player-number {
   margin-right: 0.35rem;
 
-  color: #997404;
-
   font-size: 0.8rem;
+
+  color: #997404;
 }
 
 .sit-out-help {
-  margin-top: 0.75rem;
+  display: flex;
+  align-items: flex-start;
 
-  font-size: 0.85rem;
+  gap: 0.45rem;
+
+  margin-top: 0.8rem;
 
   color: #664d03;
+
+  font-size: 0.9rem;
+  line-height: 1.45;
 }
 
-@media (max-width: 767.98px) {
-  .courts-grid {
-    grid-template-columns: 1fr;
-  }
+.sit-out-help ion-icon {
+  flex-shrink: 0;
+
+  margin-top: 0.05rem;
+
+  font-size: 18px;
 }
 
-@media (max-width: 575.98px) {
-  .assignments-heading {
-    flex-direction: column;
-    align-items: flex-start;
-  }
+/* =========================================================
+   SUBSTITUTION MODAL
+   Still custom until 8D
+========================================================= */
 
-  .round-card-header {
-    align-items: flex-start;
-  }
+.sub-modal-overlay {
+  position: fixed;
+  inset: 0;
 
-  .round-card-header
-    > div:last-child {
-    flex-direction: column;
+  z-index: 1050;
 
-    align-items:
-      flex-end !important;
-  }
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-  .round-close-button {
-    font-size: 0.85rem;
-  }
+  padding-top:
+    calc(
+      16px +
+      env(safe-area-inset-top)
+    );
 
-  .round-card-body {
-    padding: 0.75rem;
-  }
+  padding-right:
+    calc(
+      16px +
+      env(safe-area-inset-right)
+    );
 
-  .player-row {
-    min-height: 52px;
+  padding-bottom:
+    calc(
+      16px +
+      env(safe-area-inset-bottom)
+    );
 
-    font-size: 1.05rem;
-  }
+  padding-left:
+    calc(
+      16px +
+      env(safe-area-inset-left)
+    );
+
+  background:
+    rgba(0, 0, 0, 0.5);
 }
 
 .sub-modal-box {
-  background: #fff;
-
-  border-radius: 1rem;
-
-  padding: 1.25rem;
-
-  max-width: 460px;
   width: 100%;
-
+  max-width: 460px;
   max-height: 85vh;
 
   overflow-y: auto;
+
+  padding: 1.25rem;
+
+  border-radius: 1rem;
+
+  background: #ffffff;
 }
 
 .sub-modal-header {
@@ -2266,6 +2503,8 @@ export default {
 }
 
 .sub-modal-title {
+  margin: 0;
+
   font-size: 1.4rem;
   font-weight: 700;
 }
@@ -2292,12 +2531,12 @@ export default {
 
   padding: 1rem;
 
+  border:
+    1px solid #e9ecef;
+
   border-radius: 0.875rem;
 
   background: #f8f9fa;
-
-  border:
-    1px solid #e9ecef;
 }
 
 .sub-current-player-name {
@@ -2336,8 +2575,10 @@ export default {
 
   border-radius: 0.75rem;
 
-  background: #fff;
+  background: #ffffff;
   color: #212529;
+
+  font-family: inherit;
 
   text-align: left;
 }
@@ -2398,34 +2639,9 @@ export default {
   font-weight: 600;
 }
 
-@media (max-width: 575.98px) {
-  .sub-modal-overlay {
-    align-items: flex-end;
-  }
-
-  .sub-modal-box {
-    max-width: none;
-    max-height: 88vh;
-
-    border-radius:
-      1rem 1rem 0 0;
-
-    padding-bottom: calc(
-      1.25rem +
-      env(safe-area-inset-bottom)
-    );
-  }
-
-  .sub-player-option {
-    min-height: 60px;
-  }
-
-  .sub-player-option-name {
-    font-size: 1.05rem;
-  }
-}
-
-/* Checkpoint 4 accessibility/mobile */
+/* =========================================================
+   ACCESSIBILITY
+========================================================= */
 
 button,
 select,
@@ -2445,37 +2661,74 @@ input:focus-visible {
   outline-offset: 2px;
 }
 
-.view-toggle .btn {
-  font-size: 1rem;
-}
-
 .player-row,
 .vs-player {
   line-height: 1.3;
 }
 
-.sit-out-help {
-  line-height: 1.45;
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 767.98px) {
+  .courts-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .assignment-controls-content {
+    grid-template-columns: 1fr;
+  }
 }
 
+/* =========================================================
+   MOBILE
+========================================================= */
+
 @media (max-width: 575.98px) {
+  .setup-card-content {
+    padding: 1rem;
+  }
+
+  .roster-textarea {
+    font-size: 16px;
+  }
+
+  .setting-card {
+    padding: 0.7rem;
+  }
+
+  .game-summary strong {
+    font-size: 1rem;
+  }
+
+  .game-summary span {
+    font-size: 0.68rem;
+  }
+
+  .secondary-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .assignment-title-row {
+    flex-direction: column;
+    align-items: flex-start;
+
+    gap: 0.15rem;
+  }
+
   .assignments-title {
     font-size: 1.55rem;
   }
 
-  .assignment-controls {
-    gap: 0.65rem;
+  .assignment-controls-content {
+    padding: 0.85rem;
   }
 
-  .view-toggle .btn {
-    min-height: 48px;
+  .number-control {
+    min-height: 60px;
 
-    font-size: 1rem;
-  }
-
-  .player-number-toggle
-    .form-check-label {
-    font-size: 1rem;
+    padding:
+      0.5rem 0;
   }
 
   .round-card-header {
@@ -2487,17 +2740,10 @@ input:focus-visible {
     padding: 1rem;
   }
 
-  .round-card-header
-    > div:last-child {
+  .round-actions {
     width: 100%;
 
-    flex-direction: row;
-
-    align-items:
-      center !important;
-
-    justify-content:
-      space-between;
+    justify-content: space-between;
   }
 
   .round-title {
@@ -2511,21 +2757,20 @@ input:focus-visible {
       0.4rem 0.7rem;
   }
 
-  .round-close-button {
+  .round-action-button {
     min-height: 48px;
+  }
 
-    font-size: 0.95rem;
-
-    padding-left: 0.85rem;
-    padding-right: 0.85rem;
+  .round-content {
+    padding: 0.75rem;
   }
 
   .court-card-header {
-    padding: 0.9rem;
+    padding: 0.85rem;
   }
 
   .court-title {
-    font-size: 1.1rem;
+    font-size: 1.08rem;
   }
 
   .court-players {
@@ -2540,10 +2785,25 @@ input:focus-visible {
     font-size: 1.08rem;
   }
 
+  .vs-matchup {
+    gap: 0.4rem;
+
+    padding: 0.6rem;
+  }
+
+  .vs-divider {
+    width: 34px;
+    height: 34px;
+
+    font-size: 0.7rem;
+  }
+
   .vs-player {
     min-height: 56px;
 
-    font-size: 1.05rem;
+    padding: 0.55rem;
+
+    font-size: 1.02rem;
   }
 
   .player-number {
@@ -2561,14 +2821,34 @@ input:focus-visible {
     font-size: 1.15rem;
   }
 
-  .sit-out-player {
-    min-height: 44px;
-
-    font-size: 1rem;
-  }
-
   .sit-out-help {
     font-size: 0.95rem;
+  }
+
+  .sub-modal-overlay {
+    align-items: flex-end;
+  }
+
+  .sub-modal-box {
+    max-width: none;
+    max-height: 88vh;
+
+    border-radius:
+      1rem 1rem 0 0;
+
+    padding-bottom:
+      calc(
+        1.25rem +
+        env(safe-area-inset-bottom)
+      );
+  }
+
+  .sub-player-option {
+    min-height: 60px;
+  }
+
+  .sub-player-option-name {
+    font-size: 1.05rem;
   }
 }
 </style>
