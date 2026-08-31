@@ -98,7 +98,7 @@
         class="btn btn-primary"
         @click="generate()"
       >
-        🎲 Generate Random Groups
+       🏓 Generate Court Assignments
       </button>
     </div>
   </div>
