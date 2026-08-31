@@ -33,7 +33,7 @@
       </div>
       
       <div class="row">
-        <div class="col">
+        <div class="col-12 col-sm-6">
           <div class="form-floating">
             <select class="form-select form-control mb-3" id="courts" v-model="courtCount" aria-label="Court(s)">
               <option value="2">2</option>
@@ -51,7 +51,7 @@
             <label for="courts">Court(s)</label>
           </div>
         </div>
-        <div class="col">
+        <div class="col-12 col-sm-6">
           <div class="form-floating">
             <select class="form-select form-control mb-3" id="numRounds" v-model="roundCount" aria-label="Round(s)">
               <option value="1">1</option>
