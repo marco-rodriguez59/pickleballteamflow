@@ -1,10 +1,10 @@
 <template>
-  <div>
+  <div class="home-page">
     <!-- =========================================================
          GAME SETUP
     ========================================================== -->
     <section class="setup-section mb-4">
-      <div class="text-center mb-4">
+      <div class="page-heading text-center mb-4">
         <div class="app-eyebrow">
           PICKLEBALL TEAM FLOW
         </div>
@@ -13,7 +13,7 @@
           Pickleball Court Assignments
         </h1>
 
-        <p class="text-secondary mb-0">
+        <p class="page-subtitle text-secondary mb-0">
           Set up your players, courts, and rounds.
         </p>
       </div>
@@ -28,7 +28,7 @@
               <ion-icon :icon="peopleOutline" />
             </div>
 
-            <div>
+            <div class="setup-heading-text">
               <h2 class="h5 mb-0">
                 Game Setup
               </h2>
@@ -42,7 +42,7 @@
 
           <div class="roster-section">
             <div class="roster-heading">
-              <div>
+              <div class="roster-heading-copy">
                 <div class="setting-label roster-label">
                   Player Roster
                 </div>
@@ -59,6 +59,7 @@
                     players.length >= 8 &&
                     players.length <= 24
                 }"
+                aria-live="polite"
               >
                 {{ players.length }}
                 player{{ players.length === 1 ? '' : 's' }}
@@ -107,6 +108,7 @@
             <div
               v-if="ocrProgress"
               class="small text-secondary mt-2"
+              role="status"
               aria-live="polite"
             >
               {{ ocrProgress }}
@@ -133,9 +135,7 @@
                 </ion-select-option>
               </ion-select>
 
-              <div
-                class="small text-secondary setting-helper"
-              >
+              <div class="small text-secondary setting-helper">
                 {{ courtCount * 4 }} playing spots
               </div>
             </div>
@@ -159,15 +159,16 @@
                 </ion-select-option>
               </ion-select>
 
-              <div
-                class="small text-secondary setting-helper"
-              >
+              <div class="small text-secondary setting-helper">
                 Planned games
               </div>
             </div>
           </div>
 
-          <div class="game-summary">
+          <div
+            class="game-summary"
+            aria-label="Game setup summary"
+          >
             <div>
               <strong>{{ players.length }}</strong>
               <span>Players</span>
@@ -268,7 +269,6 @@
         </div>
       </div>
 
-      <!-- Assignment Controls -->
       <ion-card
         v-if="schedule.length"
         class="assignment-controls-card"
@@ -297,7 +297,7 @@
           </div>
 
           <div class="number-control">
-            <div>
+            <div class="number-control-copy">
               <div class="control-label">
                 Player Numbers
               </div>
@@ -389,6 +389,11 @@
                     : 'success'
                 "
                 class="round-action-button"
+                :aria-label="
+                  round.closed
+                    ? 'Reopen round ' + round.index
+                    : 'Close round ' + round.index
+                "
                 @click="toggleRoundClosed(round)"
               >
                 <ion-icon
@@ -420,7 +425,10 @@
                 class="court-card"
               >
                 <div class="court-card-header">
-                  <div class="court-heading-icon">
+                  <div
+                    class="court-heading-icon"
+                    aria-hidden="true"
+                  >
                     <ion-icon :icon="peopleOutline" />
                   </div>
 
@@ -472,7 +480,9 @@
                         {{ player.id }}
                       </span>
 
-                      {{ player.name }}
+                      <span class="player-name-text">
+                        {{ player.name }}
+                      </span>
                     </span>
 
                     <ion-icon
@@ -529,7 +539,7 @@
                         {{ player.id }}
                       </span>
 
-                      <span>
+                      <span class="vs-player-name">
                         {{ player.name }}
                       </span>
                     </button>
@@ -579,7 +589,7 @@
                         {{ player.id }}
                       </span>
 
-                      <span>
+                      <span class="vs-player-name">
                         {{ player.name }}
                       </span>
                     </button>
@@ -625,7 +635,13 @@
                   </h4>
                 </div>
 
-                <span class="sit-out-count">
+                <span
+                  class="sit-out-count"
+                  :aria-label="
+                    round.sitOut.length +
+                    ' players sitting out'
+                  "
+                >
                   {{ round.sitOut.length }}
                 </span>
               </div>
@@ -643,7 +659,9 @@
                     {{ player.id }}
                   </span>
 
-                  {{ player.name }}
+                  <span class="sit-out-player-name">
+                    {{ player.name }}
+                  </span>
                 </span>
               </div>
 
@@ -684,17 +702,18 @@
     </section>
 
     <!-- =========================================================
-         IONIC SUBSTITUTION MODAL
+         SUBSTITUTION MODAL
     ========================================================== -->
     <ion-modal
       :is-open="subModal.show"
       class="substitution-modal"
+      :backdrop-dismiss="true"
       @didDismiss="closeSubModal"
     >
       <ion-content class="substitution-content">
         <div class="sub-modal-shell">
           <div class="sub-modal-header">
-            <div>
+            <div class="sub-modal-heading-copy">
               <div class="sub-modal-eyebrow">
                 PLAYER SUBSTITUTION
               </div>
@@ -743,6 +762,12 @@
               :key="p.id"
               type="button"
               class="sub-player-option"
+              :aria-label="
+                'Swap ' +
+                subModal.player?.name +
+                ' with ' +
+                p.name
+              "
               @click="confirmSubstitution(p)"
             >
               <span class="sub-player-option-name">
@@ -753,7 +778,9 @@
                   {{ p.id }}
                 </span>
 
-                {{ p.name }}
+                <span class="sub-player-option-name-text">
+                  {{ p.name }}
+                </span>
               </span>
 
               <span class="sub-player-action">
@@ -793,7 +820,7 @@
     </ion-modal>
 
     <!-- =========================================================
-         IONIC TOAST
+         TOAST
     ========================================================== -->
     <ion-toast
       :is-open="toast.show"
@@ -942,13 +969,9 @@ export default {
 
       if (type.includes('success')) {
         color = 'success';
-      } else if (
-        type.includes('warning')
-      ) {
+      } else if (type.includes('warning')) {
         color = 'warning';
-      } else if (
-        type.includes('info')
-      ) {
+      } else if (type.includes('info')) {
         color = 'primary';
       }
 
@@ -991,9 +1014,7 @@ export default {
           .join('\n');
 
         if (extractedNames) {
-          if (
-            this.namesText.trim()
-          ) {
+          if (this.namesText.trim()) {
             this.namesText +=
               '\n' + extractedNames;
           } else {
@@ -1130,8 +1151,7 @@ export default {
           p => {
             const rp =
               roster.find(
-                x =>
-                  x.id === p.id
+                x => x.id === p.id
               );
 
             if (rp) {
@@ -1296,8 +1316,7 @@ export default {
             round.courts.forEach(
               court => {
                 if (
-                  court.players.length >=
-                  4
+                  court.players.length >= 4
                 ) {
                   if (
                     court.team1Ids &&
@@ -1420,8 +1439,7 @@ export default {
                 const rp =
                   roster.find(
                     x =>
-                      x.id ===
-                      p.id
+                      x.id === p.id
                   );
 
                 if (rp) {
@@ -1464,8 +1482,7 @@ export default {
                 const rp =
                   roster.find(
                     x =>
-                      x.id ===
-                      p.id
+                      x.id === p.id
                   );
 
                 if (rp) {
@@ -1499,8 +1516,20 @@ export default {
 
 <style scoped>
 /* =========================================================
-   PAGE
+   BASE / OVERFLOW SAFETY
 ========================================================= */
+
+.home-page {
+  width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+.home-page *,
+.home-page *::before,
+.home-page *::after {
+  box-sizing: border-box;
+}
 
 .app-eyebrow,
 .section-eyebrow {
@@ -1515,6 +1544,12 @@ export default {
   letter-spacing: 0.12em;
 }
 
+.page-heading {
+  max-width: 760px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .page-title {
   font-size: clamp(
     1.7rem,
@@ -1524,6 +1559,13 @@ export default {
 
   font-weight: 700;
   line-height: 1.15;
+
+  overflow-wrap: anywhere;
+}
+
+.page-subtitle {
+  font-size: 1rem;
+  line-height: 1.5;
 }
 
 /* =========================================================
@@ -1531,6 +1573,7 @@ export default {
 ========================================================= */
 
 .setup-card {
+  width: 100%;
   margin: 0;
 
   border-radius: 1rem;
@@ -1552,11 +1595,17 @@ export default {
 
   gap: 0.75rem;
 
+  min-width: 0;
+
   border-bottom:
     1px solid #dee2e6;
 
   padding-bottom: 1rem;
   margin-bottom: 1.5rem;
+}
+
+.setup-heading-text {
+  min-width: 0;
 }
 
 .setup-icon {
@@ -1567,7 +1616,7 @@ export default {
   align-items: center;
   justify-content: center;
 
-  flex-shrink: 0;
+  flex: 0 0 44px;
 
   border-radius: 50%;
 
@@ -1580,6 +1629,7 @@ export default {
 }
 
 .roster-section {
+  min-width: 0;
   margin-bottom: 1.5rem;
 }
 
@@ -1590,7 +1640,13 @@ export default {
 
   gap: 1rem;
 
+  min-width: 0;
+
   margin-bottom: 0.65rem;
+}
+
+.roster-heading-copy {
+  min-width: 0;
 }
 
 .setting-label {
@@ -1608,6 +1664,8 @@ export default {
 }
 
 .player-count {
+  flex-shrink: 0;
+
   white-space: nowrap;
 
   font-weight: 600;
@@ -1623,10 +1681,13 @@ export default {
   --border-color: #ced4da;
   --border-radius: 0.75rem;
   --highlight-color-focused: #198754;
+
   --padding-start: 0.9rem;
   --padding-end: 0.9rem;
   --padding-top: 0.85rem;
   --padding-bottom: 0.85rem;
+
+  width: 100%;
 
   font-size: 1rem;
   line-height: 1.55;
@@ -1639,6 +1700,7 @@ export default {
   --border-width: 1px;
 
   min-height: 50px;
+
   margin-top: 1rem;
 
   font-weight: 600;
@@ -1657,6 +1719,8 @@ export default {
 }
 
 .setting-card {
+  min-width: 0;
+
   border:
     1px solid #dee2e6;
 
@@ -1672,10 +1736,12 @@ export default {
   --border-color: #ced4da;
   --border-radius: 0.7rem;
   --highlight-color-focused: #198754;
+
   --padding-start: 0.8rem;
   --padding-end: 0.8rem;
 
   width: 100%;
+  min-height: 52px;
 
   font-weight: 700;
 }
@@ -1690,7 +1756,9 @@ export default {
   display: grid;
 
   grid-template-columns:
-    repeat(4, 1fr);
+    repeat(4, minmax(0, 1fr));
+
+  width: 100%;
 
   border:
     1px solid #dee2e6;
@@ -1703,6 +1771,8 @@ export default {
 }
 
 .game-summary > div {
+  min-width: 0;
+
   text-align: center;
 
   padding:
@@ -1728,6 +1798,8 @@ export default {
 
   font-size: 0.72rem;
   color: #6c757d;
+
+  overflow-wrap: anywhere;
 }
 
 .generate-button {
@@ -1777,6 +1849,9 @@ export default {
 ========================================================= */
 
 .assignments-section {
+  width: 100%;
+  min-width: 0;
+
   margin-top: 1.75rem;
 }
 
@@ -1789,9 +1864,12 @@ export default {
   align-items: flex-end;
 
   gap: 0.6rem;
+
+  min-width: 0;
 }
 
 .assignments-title {
+  min-width: 0;
   margin: 0;
 
   font-size: clamp(
@@ -1801,9 +1879,13 @@ export default {
   );
 
   font-weight: 700;
+
+  overflow-wrap: anywhere;
 }
 
 .round-count-text {
+  flex-shrink: 0;
+
   padding-bottom: 0.15rem;
 
   font-size: 0.9rem;
@@ -1811,6 +1893,8 @@ export default {
 }
 
 .assignment-controls-card {
+  width: 100%;
+
   margin:
     0 0 1rem 0;
 
@@ -1835,6 +1919,11 @@ export default {
   padding: 1rem;
 }
 
+.view-control,
+.number-control-copy {
+  min-width: 0;
+}
+
 .control-label {
   margin-bottom: 0.4rem;
 
@@ -1849,6 +1938,7 @@ export default {
 
 .control-help {
   font-size: 0.82rem;
+  line-height: 1.35;
 
   color: #6c757d;
 }
@@ -1856,6 +1946,7 @@ export default {
 .view-segment {
   --background: #eef2ef;
 
+  width: 100%;
   min-height: 48px;
 }
 
@@ -1864,7 +1955,8 @@ export default {
   --color-checked: #ffffff;
   --indicator-color: #0e4b2e;
 
-  min-height: 46px;
+  min-width: 0;
+  min-height: 48px;
 
   font-weight: 700;
 }
@@ -1896,10 +1988,11 @@ export default {
 }
 
 /* =========================================================
-   EMPTY
+   EMPTY STATE
 ========================================================= */
 
 .empty-assignments {
+  width: 100%;
   margin: 0;
 
   border:
@@ -1957,16 +2050,22 @@ export default {
 }
 
 /* =========================================================
-   ROUNDS
+   ROUND CARDS
 ========================================================= */
 
 .rounds-list {
   display: grid;
 
   gap: 1rem;
+
+  width: 100%;
+  min-width: 0;
 }
 
 .round-card {
+  width: 100%;
+  min-width: 0;
+
   margin: 0;
 
   border-radius: 1rem;
@@ -1993,6 +2092,8 @@ export default {
 
   gap: 1rem;
 
+  min-width: 0;
+
   padding:
     1rem 1.1rem;
 
@@ -2005,6 +2106,10 @@ export default {
 .round-card-completed
 .round-card-header {
   background: #f1f3f2;
+}
+
+.round-heading {
+  min-width: 0;
 }
 
 .round-label {
@@ -2029,11 +2134,15 @@ export default {
   align-items: center;
 
   gap: 0.65rem;
+
+  flex-shrink: 0;
 }
 
 .round-status {
   display: inline-flex;
   align-items: center;
+
+  min-height: 32px;
 
   border-radius: 999px;
 
@@ -2042,6 +2151,8 @@ export default {
 
   font-size: 0.76rem;
   font-weight: 700;
+
+  white-space: nowrap;
 }
 
 .round-status-open {
@@ -2065,6 +2176,8 @@ export default {
 }
 
 .round-content {
+  min-width: 0;
+
   padding: 1rem;
 }
 
@@ -2081,6 +2194,7 @@ export default {
   color: #6c757d;
 
   font-size: 0.9rem;
+  line-height: 1.4;
 }
 
 .closed-round-summary ion-icon {
@@ -2102,9 +2216,13 @@ export default {
     repeat(2, minmax(0, 1fr));
 
   gap: 1rem;
+
+  min-width: 0;
 }
 
 .court-card {
+  min-width: 0;
+
   overflow: hidden;
 
   border:
@@ -2123,6 +2241,8 @@ export default {
 
   gap: 0.6rem;
 
+  min-width: 0;
+
   padding:
     0.75rem 0.9rem;
 
@@ -2140,7 +2260,7 @@ export default {
   align-items: center;
   justify-content: center;
 
-  flex-shrink: 0;
+  flex: 0 0 32px;
 
   border-radius: 50%;
 
@@ -2153,6 +2273,7 @@ export default {
 }
 
 .court-title {
+  min-width: 0;
   margin: 0;
 
   font-size: 1rem;
@@ -2166,16 +2287,21 @@ export default {
 ========================================================= */
 
 .court-players {
+  min-width: 0;
+
   padding: 0.4rem;
 }
 
 .player-row {
   width: 100%;
+  min-width: 0;
   min-height: 52px;
 
   display: flex;
   align-items: center;
   justify-content: space-between;
+
+  gap: 0.5rem;
 
   padding:
     0.65rem 0.7rem;
@@ -2212,25 +2338,35 @@ export default {
   background: #f0f8f4;
 }
 
-.player-row:focus-visible {
-  outline:
-    3px solid
-    rgba(25, 135, 84, 0.25);
+.player-name {
+  min-width: 0;
 
-  outline-offset: 1px;
+  display: flex;
+  align-items: center;
+
+  font-weight: 600;
 }
 
-.player-name {
-  font-weight: 600;
+.player-name-text,
+.vs-player-name,
+.sit-out-player-name,
+.sub-player-option-name-text {
+  min-width: 0;
+
+  overflow-wrap: anywhere;
+  word-break: normal;
 }
 
 .player-number {
   min-width: 30px;
+  width: 30px;
   height: 30px;
 
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
+  flex: 0 0 30px;
 
   margin-right: 0.45rem;
 
@@ -2246,7 +2382,7 @@ export default {
 .swap-indicator {
   flex-shrink: 0;
 
-  margin-left: 0.5rem;
+  margin-left: 0.25rem;
 
   font-size: 20px;
 
@@ -2268,6 +2404,8 @@ export default {
   align-items: stretch;
 
   gap: 0.75rem;
+
+  min-width: 0;
 
   padding: 0.75rem;
 }
@@ -2297,6 +2435,7 @@ export default {
 
 .vs-player {
   width: 100%;
+  min-width: 0;
   min-height: 52px;
 
   display: flex;
@@ -2322,18 +2461,11 @@ export default {
   text-align: left;
 }
 
-.vs-player:not(:disabled):hover {
-  border-color: #adb5bd;
+.vs-player:not(:disabled):hover,
+.vs-player:not(:disabled):focus-visible {
+  border-color: #198754;
 
-  background: #f8f9fa;
-}
-
-.vs-player:focus-visible {
-  outline:
-    3px solid
-    rgba(25, 135, 84, 0.25);
-
-  outline-offset: 2px;
+  background: #f0f8f4;
 }
 
 .vs-player:disabled {
@@ -2349,6 +2481,8 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
+
+  flex-shrink: 0;
 
   border-radius: 50%;
 
@@ -2382,6 +2516,8 @@ export default {
   background: #f8f9fa;
 
   color: #495057;
+
+  line-height: 1.4;
 }
 
 .idle-courts ion-icon {
@@ -2410,6 +2546,8 @@ export default {
   align-items: center;
   justify-content: space-between;
 
+  gap: 1rem;
+
   margin-bottom: 0.75rem;
 }
 
@@ -2433,11 +2571,14 @@ export default {
 
 .sit-out-count {
   min-width: 34px;
+  width: 34px;
   height: 34px;
 
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
+  flex: 0 0 34px;
 
   border-radius: 50%;
 
@@ -2452,10 +2593,14 @@ export default {
   flex-wrap: wrap;
 
   gap: 0.5rem;
+
+  min-width: 0;
 }
 
 .sit-out-player {
+  min-width: 0;
   min-height: 44px;
+  max-width: 100%;
 
   display: inline-flex;
   align-items: center;
@@ -2474,6 +2619,8 @@ export default {
 }
 
 .sit-out-player-number {
+  flex-shrink: 0;
+
   margin-right: 0.35rem;
 
   font-size: 0.8rem;
@@ -2504,7 +2651,7 @@ export default {
 }
 
 /* =========================================================
-   IONIC SUBSTITUTION MODAL
+   SUBSTITUTION MODAL
 ========================================================= */
 
 .substitution-modal {
@@ -2517,6 +2664,7 @@ export default {
   --max-height: 86vh;
 
   --border-radius: 1rem;
+
   --box-shadow:
     0 12px 40px
     rgba(0, 0, 0, 0.22);
@@ -2527,6 +2675,9 @@ export default {
 }
 
 .sub-modal-shell {
+  width: 100%;
+  min-width: 0;
+
   padding:
     1.25rem
     1.25rem
@@ -2543,10 +2694,16 @@ export default {
 
   gap: 1rem;
 
+  min-width: 0;
+
   padding-bottom: 1rem;
 
   border-bottom:
     1px solid #e9ecef;
+}
+
+.sub-modal-heading-copy {
+  min-width: 0;
 }
 
 .sub-modal-eyebrow {
@@ -2573,7 +2730,7 @@ export default {
   width: 44px;
   height: 44px;
 
-  flex-shrink: 0;
+  flex: 0 0 44px;
 
   margin: 0;
 }
@@ -2583,6 +2740,8 @@ export default {
 }
 
 .sub-current-player {
+  min-width: 0;
+
   margin-top: 1rem;
 
   padding: 1rem;
@@ -2598,6 +2757,8 @@ export default {
 .sub-current-player-name {
   font-size: 1.15rem;
   font-weight: 700;
+
+  overflow-wrap: anywhere;
 }
 
 .sub-instruction {
@@ -2605,16 +2766,20 @@ export default {
   margin-bottom: 0.65rem;
 
   font-weight: 600;
+  line-height: 1.4;
 }
 
 .sub-player-list {
   display: grid;
 
   gap: 0.6rem;
+
+  min-width: 0;
 }
 
 .sub-player-option {
   width: 100%;
+  min-width: 0;
   min-height: 58px;
 
   display: flex;
@@ -2646,15 +2811,12 @@ export default {
   background: #f0f8f4;
 }
 
-.sub-player-option:focus-visible {
-  outline:
-    3px solid
-    rgba(25, 135, 84, 0.25);
-
-  outline-offset: 1px;
-}
-
 .sub-player-option-name {
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+
   font-size: 1rem;
   font-weight: 600;
 }
@@ -2664,6 +2826,8 @@ export default {
   align-items: center;
 
   gap: 0.25rem;
+
+  flex-shrink: 0;
 
   white-space: nowrap;
 
@@ -2728,13 +2892,28 @@ input {
   font-family: inherit;
 }
 
+button {
+  -webkit-tap-highlight-color:
+    transparent;
+}
+
 button:focus-visible,
 select:focus-visible,
 textarea:focus-visible,
 input:focus-visible {
   outline:
     3px solid
-    rgba(25, 135, 84, 0.28);
+    rgba(25, 135, 84, 0.32);
+
+  outline-offset: 2px;
+}
+
+.player-row:focus-visible,
+.vs-player:focus-visible,
+.sub-player-option:focus-visible {
+  outline:
+    3px solid
+    rgba(25, 135, 84, 0.32);
 
   outline-offset: 2px;
 }
@@ -2744,9 +2923,52 @@ input:focus-visible {
   line-height: 1.3;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* =========================================================
+   LARGE TABLETS / DESKTOP
+========================================================= */
+
+@media (min-width: 1100px) {
+  .setup-card-content {
+    padding: 1.75rem;
+  }
+
+  .round-content {
+    padding: 1.25rem;
+  }
+
+  .courts-grid {
+    gap: 1.25rem;
+  }
+}
+
 /* =========================================================
    TABLET
 ========================================================= */
+
+@media (max-width: 900px) {
+  .assignment-controls-content {
+    grid-template-columns:
+      minmax(0, 1fr)
+      minmax(190px, 0.65fr);
+  }
+
+  .courts-grid {
+    gap: 0.85rem;
+  }
+}
 
 @media (max-width: 767.98px) {
   .courts-grid {
@@ -2756,6 +2978,13 @@ input:focus-visible {
   .assignment-controls-content {
     grid-template-columns: 1fr;
   }
+
+  .number-control {
+    border-top:
+      1px solid #e9ecef;
+
+    padding-top: 1rem;
+  }
 }
 
 /* =========================================================
@@ -2763,16 +2992,66 @@ input:focus-visible {
 ========================================================= */
 
 @media (max-width: 575.98px) {
+  .page-heading {
+    margin-bottom: 1rem !important;
+  }
+
+  .page-title {
+    font-size: 1.65rem;
+  }
+
+  .page-subtitle {
+    font-size: 0.95rem;
+  }
+
+  .setup-card,
+  .assignment-controls-card,
+  .round-card,
+  .empty-assignments {
+    border-radius: 0.875rem;
+  }
+
   .setup-card-content {
     padding: 1rem;
+  }
+
+  .setup-heading {
+    align-items: flex-start;
+
+    margin-bottom: 1.25rem;
+  }
+
+  .setup-icon {
+    width: 42px;
+    height: 42px;
+
+    flex-basis: 42px;
+  }
+
+  .roster-heading {
+    align-items: flex-start;
+
+    gap: 0.75rem;
+  }
+
+  .player-count {
+    font-size: 0.9rem;
   }
 
   .roster-textarea {
     font-size: 16px;
   }
 
+  .settings-grid {
+    gap: 0.65rem;
+  }
+
   .setting-card {
-    padding: 0.7rem;
+    padding: 0.65rem;
+  }
+
+  .setting-helper {
+    font-size: 0.72rem !important;
   }
 
   .game-summary strong {
@@ -2780,7 +3059,18 @@ input:focus-visible {
   }
 
   .game-summary span {
-    font-size: 0.68rem;
+    font-size: 0.66rem;
+  }
+
+  .game-summary > div {
+    padding:
+      0.75rem 0.15rem;
+  }
+
+  .generate-button {
+    min-height: 58px;
+
+    font-size: 1rem;
   }
 
   .secondary-actions {
@@ -2798,15 +3088,23 @@ input:focus-visible {
     font-size: 1.55rem;
   }
 
+  .round-count-text {
+    padding-bottom: 0;
+  }
+
   .assignment-controls-content {
     padding: 0.85rem;
   }
 
+  .view-segment ion-segment-button {
+    min-height: 50px;
+  }
+
   .number-control {
-    min-height: 60px;
+    min-height: 62px;
 
     padding:
-      0.5rem 0;
+      1rem 0 0.35rem;
   }
 
   .round-card-header {
@@ -2830,6 +3128,8 @@ input:focus-visible {
   }
 
   .round-status {
+    min-height: 34px;
+
     font-size: 0.8rem;
 
     padding:
@@ -2857,7 +3157,7 @@ input:focus-visible {
   }
 
   .player-row {
-    min-height: 56px;
+    min-height: 58px;
 
     padding: 0.75rem;
 
@@ -2878,15 +3178,17 @@ input:focus-visible {
   }
 
   .vs-player {
-    min-height: 56px;
+    min-height: 58px;
 
-    padding: 0.55rem;
+    padding:
+      0.6rem 0.5rem;
 
-    font-size: 1.02rem;
+    font-size: 1rem;
   }
 
   .player-number {
     min-width: 30px;
+    width: 30px;
     height: 30px;
 
     font-size: 0.82rem;
@@ -2909,6 +3211,9 @@ input:focus-visible {
     --height: auto;
     --max-height: 88vh;
 
+    --border-radius:
+      1rem 1rem 0 0;
+
     align-items: flex-end;
   }
 
@@ -2928,6 +3233,79 @@ input:focus-visible {
 
   .sub-player-option-name {
     font-size: 1.05rem;
+  }
+}
+
+/* =========================================================
+   EXTRA-NARROW PHONES
+========================================================= */
+
+@media (max-width: 390px) {
+  .settings-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .game-summary {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .game-summary > div + div {
+    border-left: 0;
+  }
+
+  .game-summary > div:nth-child(even) {
+    border-left:
+      1px solid #dee2e6;
+  }
+
+  .game-summary > div:nth-child(n + 3) {
+    border-top:
+      1px solid #dee2e6;
+  }
+
+  .round-actions {
+    align-items: stretch;
+
+    flex-direction: column;
+  }
+
+  .round-status {
+    align-self: flex-start;
+  }
+
+  .round-action-button {
+    width: 100%;
+  }
+
+  .vs-matchup {
+    grid-template-columns: 1fr;
+
+    gap: 0.55rem;
+  }
+
+  .vs-divider {
+    width: auto;
+    height: 30px;
+
+    align-self: center;
+
+    padding:
+      0 0.75rem;
+
+    border-radius: 999px;
+  }
+
+  .vs-team-label {
+    text-align: left;
+  }
+
+  .vs-player {
+    min-height: 56px;
+  }
+
+  .sub-player-option {
+    align-items: flex-start;
   }
 }
 </style>
