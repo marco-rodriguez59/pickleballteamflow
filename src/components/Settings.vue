@@ -166,7 +166,7 @@ export default {
   font-size: clamp(
     1.7rem,
     5vw,
-    2.4rem
+    2.5rem
   );
 
   font-weight: 700;
@@ -227,8 +227,28 @@ export default {
 }
 
 .view-segment {
-  --background: #f6faf7;
+  --background: #eef2ef;
   --border-radius: 0.75rem;
+
+  width: 100%;
+  min-height: 48px;
+}
+
+.view-segment ion-segment-button {
+  --color: #495057;
+  --color-checked: #ffffff;
+  --indicator-color: #0e4b2e;
+
+  min-width: 0;
+  min-height: 48px;
+
+  font-weight: 700;
+}
+
+.view-segment ion-icon {
+  margin-right: 0.35rem;
+
+  font-size: 18px;
 }
 
 .number-control {
@@ -237,5 +257,12 @@ export default {
   justify-content: space-between;
 
   gap: 1rem;
+}
+
+.number-control ion-toggle {
+  --track-background-checked: #a8c735;
+  --handle-background-checked: #0e4b2e;
+
+  flex-shrink: 0;
 }
 </style>

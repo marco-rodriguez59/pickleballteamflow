@@ -288,6 +288,52 @@
         </div>
       </div>
 
+      <ion-card
+        v-if="schedule.length && !isMobile"
+        class="assignment-controls-card"
+      >
+        <ion-card-content class="assignment-controls-content">
+          <div class="view-control">
+            <div class="control-label">
+              Court View
+            </div>
+
+            <ion-segment
+              v-model="courtView"
+              class="view-segment"
+              aria-label="Court assignment view"
+            >
+              <ion-segment-button value="list">
+                <ion-icon :icon="listOutline" />
+                <ion-label>List</ion-label>
+              </ion-segment-button>
+
+              <ion-segment-button value="vs">
+                <ion-icon :icon="gridOutline" />
+                <ion-label>VS</ion-label>
+              </ion-segment-button>
+            </ion-segment>
+          </div>
+
+          <div class="number-control">
+            <div class="number-control-copy">
+              <div class="control-label">
+                Player Numbers
+              </div>
+
+              <div class="control-help">
+                Show roster numbers beside names.
+              </div>
+            </div>
+
+            <ion-toggle
+              v-model="showNumbers"
+              aria-label="Show player numbers"
+            />
+          </div>
+        </ion-card-content>
+      </ion-card>
+
       <!-- Empty State -->
       <ion-card
         v-if="!schedule.length"
@@ -793,6 +839,95 @@
     </ion-modal>
 
     <!-- =========================================================
+         SETTINGS MODAL (MOBILE ONLY)
+    ========================================================== -->
+    <ion-modal
+      v-if="isMobile"
+      :is-open="settingsModal.show"
+      class="settings-modal"
+      :backdrop-dismiss="true"
+      @didDismiss="closeSettingsModal"
+    >
+      <div class="settings-content">
+        <div class="settings-modal-shell">
+          <div class="settings-modal-header">
+            <div class="settings-modal-heading-copy">
+              <div class="settings-modal-eyebrow">
+                VIEW SETTINGS
+              </div>
+
+              <h2 class="settings-modal-title">
+                Court Assignments
+              </h2>
+            </div>
+
+            <ion-button
+              fill="clear"
+              color="medium"
+              class="settings-modal-close"
+              aria-label="Close settings"
+              @click="closeSettingsModal"
+            >
+              <ion-icon
+                :icon="closeOutline"
+                slot="icon-only"
+              />
+            </ion-button>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-label">
+              Court View
+            </div>
+
+            <ion-segment
+              v-model="courtView"
+              class="view-segment"
+              aria-label="Court assignment view"
+            >
+              <ion-segment-button value="list">
+                <ion-icon :icon="listOutline" />
+                <ion-label>List</ion-label>
+              </ion-segment-button>
+
+              <ion-segment-button value="vs">
+                <ion-icon :icon="gridOutline" />
+                <ion-label>VS</ion-label>
+              </ion-segment-button>
+            </ion-segment>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-toggle-row">
+              <div class="settings-toggle-copy">
+                <div class="settings-label">
+                  Player Numbers
+                </div>
+
+                <div class="settings-help">
+                  Show roster numbers beside names.
+                </div>
+              </div>
+
+              <ion-toggle
+                v-model="showNumbers"
+                aria-label="Show player numbers"
+              />
+            </div>
+          </div>
+
+          <ion-button
+            expand="block"
+            class="settings-done-button"
+            @click="closeSettingsModal"
+          >
+            Done
+          </ion-button>
+        </div>
+      </div>
+    </ion-modal>
+
+    <!-- =========================================================
          TOAST
     ========================================================== -->
     <ion-toast
@@ -803,6 +938,29 @@
       position="bottom"
       @didDismiss="toast.show = false"
     />
+
+    <!-- =========================================================
+         TAB BAR (MOBILE ONLY)
+    ========================================================== -->
+    <nav v-if="isMobile" class="main-tab-bar">
+      <button
+        type="button"
+        class="tab-button tab-home"
+        @click="scrollToTop"
+      >
+        <ion-icon :icon="homeOutline" aria-hidden="true" />
+        <span class="tab-label">Home</span>
+      </button>
+
+      <button
+        type="button"
+        class="tab-button tab-settings"
+        @click="openSettingsModal"
+      >
+        <ion-icon :icon="settingsOutline" aria-hidden="true" />
+        <span class="tab-label">Settings</span>
+      </button>
+    </nav>
   </div>
 </template>
 
@@ -813,11 +971,16 @@ import {
   IonCardContent,
   IonContent,
   IonIcon,
+  IonLabel,
   IonModal,
+  IonSegment,
+  IonSegmentButton,
   IonSelect,
   IonSelectOption,
   IonTextarea,
-  IonToast
+  IonToast,
+  IonToggle,
+  isPlatform
 } from '@ionic/vue';
 
 import {
@@ -825,10 +988,14 @@ import {
   cameraOutline,
   checkmarkCircleOutline,
   closeOutline,
+  gridOutline,
+  homeOutline,
   informationCircleOutline,
+  listOutline,
   peopleOutline,
   playOutline,
   refreshOutline,
+  settingsOutline,
   swapVerticalOutline,
   trashOutline
 } from 'ionicons/icons';
@@ -856,11 +1023,15 @@ export default {
     IonCardContent,
     IonContent,
     IonIcon,
+    IonLabel,
     IonModal,
+    IonSegment,
+    IonSegmentButton,
     IonSelect,
     IonSelectOption,
     IonTextarea,
-    IonToast
+    IonToast,
+    IonToggle
   },
 
   setup() {
@@ -869,10 +1040,14 @@ export default {
       cameraOutline,
       checkmarkCircleOutline,
       closeOutline,
+      gridOutline,
+      homeOutline,
       informationCircleOutline,
+      listOutline,
       peopleOutline,
       playOutline,
       refreshOutline,
+      settingsOutline,
       swapVerticalOutline,
       trashOutline
     };
@@ -880,6 +1055,7 @@ export default {
 
   data() {
     return {
+      isMobile: isPlatform('ios') || isPlatform('android') || isPlatform('mobile'),
       namesText: '',
       courtCount: 2,
       roundCount: 7,
@@ -892,6 +1068,10 @@ export default {
         round: null,
         court: null,
         player: null
+      },
+
+      settingsModal: {
+        show: false
       },
 
       toast: {
@@ -964,6 +1144,24 @@ export default {
       this.toast.color = color;
       this.toast.duration = 4000;
       this.toast.show = true;
+    },
+
+    openSettingsModal() {
+      this.settingsModal.show = true;
+    },
+
+    closeSettingsModal() {
+      this.settingsModal.show = false;
+    },
+
+    scrollToTop() {
+      const content = document.querySelector('.app-content');
+
+      if (content && typeof content.scrollToTop === 'function') {
+        content.scrollToTop(300);
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     },
 
     async handleImageUpload(event) {
@@ -3339,4 +3537,360 @@ input:focus-visible {
     align-items: flex-start;
   }
 }
+
+/* =========================================================
+   SETTINGS MODAL (MOBILE ONLY)
+========================================================= */
+
+.settings-modal {
+  --width: 100%;
+  --height: auto;
+
+  --border-radius:
+    1rem 1rem 0 0;
+
+  --box-shadow:
+    0 12px 40px
+    rgba(0, 0, 0, 0.22);
+
+  align-items: flex-end;
+}
+
+.settings-modal::part(content) {
+  border-radius:
+    1rem 1rem 0 0;
+}
+
+.settings-content {
+  display: block;
+
+  max-height: 85vh;
+  overflow-y: auto;
+
+  background: #ffffff;
+}
+
+.settings-modal-shell {
+  width: 100%;
+  min-width: 0;
+
+  padding:
+    1.25rem
+    1.25rem
+    calc(
+      1.25rem +
+      env(safe-area-inset-bottom)
+    );
+}
+
+.settings-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 1rem;
+
+  min-width: 0;
+
+  padding-bottom: 1rem;
+
+  border-bottom:
+    1px solid #e9ecef;
+}
+
+.settings-modal-heading-copy {
+  min-width: 0;
+}
+
+.settings-modal-eyebrow {
+  font-size: 0.68rem;
+  font-weight: 700;
+
+  letter-spacing: 0.1em;
+
+  color: #198754;
+}
+
+.settings-modal-title {
+  margin:
+    0.1rem 0 0;
+
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.settings-modal-close {
+  --padding-start: 0;
+  --padding-end: 0;
+
+  width: 44px;
+  height: 44px;
+
+  flex: 0 0 44px;
+
+  margin: 0;
+}
+
+.settings-modal-close ion-icon {
+  font-size: 24px;
+}
+
+.settings-section {
+  margin-top: 1.25rem;
+}
+
+.settings-label {
+  margin-bottom: 0.6rem;
+
+  font-size: 0.78rem;
+  font-weight: 700;
+
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+
+  color: #495057;
+}
+
+.settings-help {
+  font-size: 0.85rem;
+  line-height: 1.35;
+
+  color: #6c757d;
+}
+
+.settings-section .view-segment {
+  --background: #eef2ef;
+
+  width: 100%;
+  min-height: 52px;
+}
+
+.settings-section .view-segment ion-segment-button {
+  --color: #495057;
+  --color-checked: #ffffff;
+  --indicator-color: #0e4b2e;
+
+  min-width: 0;
+  min-height: 52px;
+
+  font-weight: 700;
+}
+
+.settings-section .view-segment ion-icon {
+  margin-right: 0.35rem;
+
+  font-size: 18px;
+}
+
+.settings-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 1rem;
+
+  padding: 1rem;
+
+  border:
+    1px solid #e9ecef;
+
+  border-radius: 0.875rem;
+
+  background: #f8f9fa;
+}
+
+.settings-toggle-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.settings-toggle-row ion-toggle {
+  --track-background-checked: #a8c735;
+  --handle-background-checked: #0e4b2e;
+
+  flex-shrink: 0;
+}
+
+.settings-done-button {
+  --background: #0e4b2e;
+  --background-hover: #0b3d26;
+  --background-activated: #0b3d26;
+  --color: #ffffff;
+  --border-radius: 0.75rem;
+
+  min-height: 56px;
+
+  margin-top: 1.5rem;
+
+  font-size: 1.05rem;
+  font-weight: 700;
+
+  text-transform: none;
+}
+
+/* =========================================================
+   ASSIGNMENT CONTROLS (WEB ONLY)
+========================================================= */
+
+.assignment-controls-card {
+  width: 100%;
+
+  margin:
+    0 0 1rem 0;
+
+  border-radius: 1rem;
+
+  box-shadow:
+    0 2px 10px
+    rgba(0, 0, 0, 0.06);
+}
+
+.assignment-controls-content {
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(220px, 0.75fr);
+
+  align-items: end;
+
+  gap: 1rem;
+
+  padding: 1rem;
+}
+
+.view-control,
+.number-control-copy {
+  min-width: 0;
+}
+
+.control-label {
+  margin-bottom: 0.4rem;
+
+  font-size: 0.78rem;
+  font-weight: 700;
+
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+
+  color: #495057;
+}
+
+.control-help {
+  font-size: 0.82rem;
+  line-height: 1.35;
+
+  color: #6c757d;
+}
+
+.view-segment {
+  --background: #eef2ef;
+
+  width: 100%;
+  min-height: 48px;
+}
+
+.view-segment ion-segment-button {
+  --color: #495057;
+  --color-checked: #ffffff;
+  --indicator-color: #0e4b2e;
+
+  min-width: 0;
+  min-height: 48px;
+
+  font-weight: 700;
+}
+
+.view-segment ion-icon {
+  margin-right: 0.35rem;
+
+  font-size: 18px;
+}
+
+.number-control {
+  min-height: 56px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 1rem;
+
+  padding:
+    0.5rem 0.25rem;
+}
+
+.number-control ion-toggle {
+  --track-background-checked: #a8c735;
+  --handle-background-checked: #0e4b2e;
+
+  flex-shrink: 0;
+}
+
+/* =========================================================
+   TAB BAR (MOBILE ONLY)
+========================================================= */
+
+.main-tab-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+
+  display: flex;
+
+  height: 65px;
+
+  border-top:
+    1px solid #dee2e6;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 -2px 8px
+    rgba(0, 0, 0, 0.08);
+
+  padding-bottom:
+    env(safe-area-inset-bottom);
+}
+
+.tab-button {
+  flex: 1;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  gap: 2px;
+
+  border: 0;
+  background: transparent;
+
+  color: #6c757d;
+
+  font-family: inherit;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+
+  cursor: pointer;
+
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tab-button ion-icon {
+  font-size: 24px;
+}
+
+.tab-button:not([disabled]):active {
+  color: #0e4b2e;
+}
+
+.tab-button[disabled] {
+  opacity: 0.4;
+  cursor: default;
+}
+
 </style>
