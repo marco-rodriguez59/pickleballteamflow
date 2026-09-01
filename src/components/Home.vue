@@ -52,6 +52,7 @@
                 </div>
               </div>
 
+            <div class="roster-heading-actions">
               <div
                 class="player-count"
                 :class="{
@@ -64,6 +65,24 @@
                 {{ players.length }}
                 player{{ players.length === 1 ? '' : 's' }}
               </div>
+            
+              <ion-button
+                v-if="players.length"
+                fill="clear"
+                size="small"
+                color="medium"
+                class="clear-roster-button"
+                aria-label="Clear player roster"
+                @click="clearRoster()"
+              >
+                <ion-icon
+                  :icon="trashOutline"
+                  slot="start"
+                />
+            
+                Clear Roster
+              </ion-button>
+            </div>
             </div>
 
             <ion-textarea
@@ -72,7 +91,7 @@
               fill="outline"
               :rows="6"
               :auto-grow="true"
-              placeholder="John Smith&#10;Sarah Johnson&#10;Mike Davis"
+              placeholder="John Smith&#10;Sara Johnson&#10;Mike Davis"
               aria-label="Player roster"
               helper-text="8–24 players are supported."
             />
@@ -1173,7 +1192,17 @@ export default {
         'alert alert-success'
       );
     },
-
+    clearRoster() {
+      this.namesText = '';
+      this.schedule = [];
+    
+      this.closeSubModal();
+    
+      this.showMessage(
+        'Player roster and court assignments cleared.',
+        'alert alert-success'
+      );
+    },
     clearAll() {
       this.schedule = [];
 
@@ -1648,6 +1677,29 @@ export default {
 .roster-heading-copy {
   min-width: 0;
 }
+  
+.roster-heading-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  gap: 0.35rem;
+
+  flex-shrink: 0;
+}
+
+.clear-roster-button {
+  --color: #6c757d;
+  --padding-start: 0.45rem;
+  --padding-end: 0.45rem;
+
+  min-height: 44px;
+  margin: 0;
+
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: none;
+}
 
 .setting-label {
   display: block;
@@ -1678,7 +1730,8 @@ export default {
 
 .roster-textarea {
   --background: #ffffff;
-  --border-color: #ced4da;
+  --border-color: #8b949e;
+  --border-width: 2px;
   --border-radius: 0.75rem;
   --highlight-color-focused: #198754;
 
@@ -3033,6 +3086,17 @@ input:focus-visible {
 
     gap: 0.75rem;
   }
+  
+  .roster-heading-actions {
+  align-items: flex-end;
+  flex-direction: column;
+
+  gap: 0;
+}
+
+.clear-roster-button {
+  min-height: 40px;
+}
 
   .player-count {
     font-size: 0.9rem;
