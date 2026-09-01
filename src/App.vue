@@ -83,6 +83,22 @@
                 </ion-label>
               </ion-item>
             </router-link>
+
+            <router-link
+              to="/settings"
+              class="menu-link"
+            >
+              <ion-item button detail="false">
+                <ion-icon
+                  :icon="settingsOutline"
+                  slot="start"
+                />
+
+                <ion-label>
+                  Settings
+                </ion-label>
+              </ion-item>
+            </router-link>
           </ion-list>
         </ion-content>
       </ion-popover>
@@ -108,7 +124,8 @@ import {
 import {
   homeOutline,
   informationCircleOutline,
-  menuOutline
+  menuOutline,
+  settingsOutline
 } from 'ionicons/icons';
 
 export default {
@@ -132,7 +149,8 @@ export default {
     return {
       homeOutline,
       informationCircleOutline,
-      menuOutline
+      menuOutline,
+      settingsOutline
     };
   }
 };

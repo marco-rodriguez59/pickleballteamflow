@@ -288,52 +288,6 @@
         </div>
       </div>
 
-      <ion-card
-        v-if="schedule.length"
-        class="assignment-controls-card"
-      >
-        <ion-card-content class="assignment-controls-content">
-          <div class="view-control">
-            <div class="control-label">
-              Court View
-            </div>
-
-            <ion-segment
-              v-model="courtView"
-              class="view-segment"
-              aria-label="Court assignment view"
-            >
-              <ion-segment-button value="list">
-                <ion-icon :icon="listOutline" />
-                <ion-label>List</ion-label>
-              </ion-segment-button>
-
-              <ion-segment-button value="vs">
-                <ion-icon :icon="gridOutline" />
-                <ion-label>VS</ion-label>
-              </ion-segment-button>
-            </ion-segment>
-          </div>
-
-          <div class="number-control">
-            <div class="number-control-copy">
-              <div class="control-label">
-                Player Numbers
-              </div>
-
-              <div class="control-help">
-                Show roster numbers beside names.
-              </div>
-            </div>
-
-            <ion-toggle
-              v-model="showNumbers"
-              aria-label="Show player numbers"
-            />
-          </div>
-        </ion-card-content>
-      </ion-card>
-
       <!-- Empty State -->
       <ion-card
         v-if="!schedule.length"
@@ -859,15 +813,11 @@ import {
   IonCardContent,
   IonContent,
   IonIcon,
-  IonLabel,
   IonModal,
-  IonSegment,
-  IonSegmentButton,
   IonSelect,
   IonSelectOption,
   IonTextarea,
-  IonToast,
-  IonToggle
+  IonToast
 } from '@ionic/vue';
 
 import {
@@ -875,9 +825,7 @@ import {
   cameraOutline,
   checkmarkCircleOutline,
   closeOutline,
-  gridOutline,
   informationCircleOutline,
-  listOutline,
   peopleOutline,
   playOutline,
   refreshOutline,
@@ -891,6 +839,12 @@ import {
   keyMatchup
 } from '../utils.js';
 
+import {
+  setCourtView,
+  setShowNumbers,
+  settings
+} from '../settingsStore.js';
+
 import { createWorker } from 'tesseract.js';
 
 export default {
@@ -902,15 +856,11 @@ export default {
     IonCardContent,
     IonContent,
     IonIcon,
-    IonLabel,
     IonModal,
-    IonSegment,
-    IonSegmentButton,
     IonSelect,
     IonSelectOption,
     IonTextarea,
-    IonToast,
-    IonToggle
+    IonToast
   },
 
   setup() {
@@ -919,9 +869,7 @@ export default {
       cameraOutline,
       checkmarkCircleOutline,
       closeOutline,
-      gridOutline,
       informationCircleOutline,
-      listOutline,
       peopleOutline,
       playOutline,
       refreshOutline,
@@ -934,8 +882,6 @@ export default {
     return {
       namesText: '',
       courtCount: 2,
-      showNumbers: true,
-      courtView: 'list',
       roundCount: 7,
       schedule: [],
       isProcessing: false,
@@ -958,6 +904,26 @@ export default {
   },
 
   computed: {
+    courtView: {
+      get() {
+        return settings.courtView;
+      },
+
+      set(value) {
+        setCourtView(value);
+      }
+    },
+
+    showNumbers: {
+      get() {
+        return settings.showNumbers;
+      },
+
+      set(value) {
+        setShowNumbers(value);
+      }
+    },
+
     players() {
       return this.namesText
         .split('\n')

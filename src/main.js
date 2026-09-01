@@ -16,11 +16,13 @@ import '@ionic/vue/css/display.css'
 import App from './App.vue'
 import Home from './components/Home.vue'
 import About from './components/About.vue'
+import Settings from './components/Settings.vue'
 
 // Routes
 const routes = [
   { path: '/', component: Home },
-  { path: '/about', component: About }
+  { path: '/about', component: About },
+  { path: '/settings', component: Settings }
 ]
 
 // Router
