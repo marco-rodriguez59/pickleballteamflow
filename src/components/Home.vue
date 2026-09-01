@@ -976,6 +976,15 @@
 
       <button
         type="button"
+        class="tab-button tab-about"
+        @click="goToAbout"
+      >
+        <ion-icon :icon="informationCircleOutline" aria-hidden="true" />
+        <span class="tab-label">About</span>
+      </button>
+
+      <button
+        type="button"
         class="tab-button tab-settings"
         @click="openSettingsModal"
       >
@@ -1184,6 +1193,10 @@ export default {
       } else {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
+    },
+
+    goToAbout() {
+      this.$router.push('/about');
     },
 
     async handleImageUpload(event) {
