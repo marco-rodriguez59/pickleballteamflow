@@ -288,52 +288,6 @@
         </div>
       </div>
 
-      <ion-card
-        v-if="schedule.length && !isMobile"
-        class="assignment-controls-card"
-      >
-        <ion-card-content class="assignment-controls-content">
-          <div class="view-control">
-            <div class="control-label">
-              Court View
-            </div>
-
-            <ion-segment
-              v-model="courtView"
-              class="view-segment"
-              aria-label="Court assignment view"
-            >
-              <ion-segment-button value="list">
-                <ion-icon :icon="listOutline" />
-                <ion-label>List</ion-label>
-              </ion-segment-button>
-
-              <ion-segment-button value="vs">
-                <ion-icon :icon="gridOutline" />
-                <ion-label>VS</ion-label>
-              </ion-segment-button>
-            </ion-segment>
-          </div>
-
-          <div class="number-control">
-            <div class="number-control-copy">
-              <div class="control-label">
-                Player Numbers
-              </div>
-
-              <div class="control-help">
-                Show roster numbers beside names.
-              </div>
-            </div>
-
-            <ion-toggle
-              v-model="showNumbers"
-              aria-label="Show player numbers"
-            />
-          </div>
-        </ion-card-content>
-      </ion-card>
-
       <!-- Empty State -->
       <ion-card
         v-if="!schedule.length"
@@ -365,7 +319,7 @@
         class="rounds-list"
       >
         <ion-card
-          v-for="round in schedule"
+          v-for="round in sortedSchedule"
           :key="round.index"
           class="round-card"
           :class="{
@@ -1122,6 +1076,12 @@ export default {
       return this.schedule.some(
         round => !round.closed
       );
+    },
+
+    sortedSchedule() {
+      const open = this.schedule.filter(r => !r.closed).sort((a, b) => a.index - b.index);
+      const closed = this.schedule.filter(r => r.closed).sort((a, b) => a.index - b.index);
+      return [...open, ...closed];
     }
   },
 
