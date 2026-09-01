@@ -853,12 +853,16 @@
           <div class="settings-modal-header">
             <div class="settings-modal-heading-copy">
               <div class="settings-modal-eyebrow">
-                VIEW SETTINGS
+                APP CONTROLS
               </div>
 
               <h2 class="settings-modal-title">
-                Court Assignments
+                Settings
               </h2>
+
+              <p class="settings-modal-subtitle">
+                Customize how court assignments are displayed.
+              </p>
             </div>
 
             <ion-button
@@ -875,46 +879,64 @@
             </ion-button>
           </div>
 
-          <div class="settings-section">
-            <div class="settings-label">
-              Court View
-            </div>
+          <ion-card class="settings-card">
+            <ion-card-content class="settings-card-content">
+              <div class="setting-row">
+                <div class="setting-copy">
+                  <div class="setting-label">
+                    Court View
+                  </div>
 
-            <ion-segment
-              v-model="courtView"
-              class="view-segment"
-              aria-label="Court assignment view"
-            >
-              <ion-segment-button value="list">
-                <ion-icon :icon="listOutline" />
-                <ion-label>List</ion-label>
-              </ion-segment-button>
-
-              <ion-segment-button value="vs">
-                <ion-icon :icon="gridOutline" />
-                <ion-label>VS</ion-label>
-              </ion-segment-button>
-            </ion-segment>
-          </div>
-
-          <div class="settings-section">
-            <div class="settings-toggle-row">
-              <div class="settings-toggle-copy">
-                <div class="settings-label">
-                  Player Numbers
+                  <div class="setting-help">
+                    Choose between list and VS matchup layouts.
+                  </div>
                 </div>
 
-                <div class="settings-help">
-                  Show roster numbers beside names.
-                </div>
+                <ion-icon
+                  :icon="gridOutline"
+                  aria-hidden="true"
+                  class="setting-row-icon"
+                />
               </div>
 
-              <ion-toggle
-                v-model="showNumbers"
-                aria-label="Show player numbers"
-              />
-            </div>
-          </div>
+              <ion-segment
+                v-model="courtView"
+                class="view-segment"
+                aria-label="Court assignment view"
+              >
+                <ion-segment-button value="list">
+                  <ion-icon :icon="listOutline" />
+                  <ion-label>List</ion-label>
+                </ion-segment-button>
+
+                <ion-segment-button value="vs">
+                  <ion-icon :icon="gridOutline" />
+                  <ion-label>VS</ion-label>
+                </ion-segment-button>
+              </ion-segment>
+            </ion-card-content>
+          </ion-card>
+
+          <ion-card class="settings-card">
+            <ion-card-content class="settings-card-content">
+              <div class="number-control">
+                <div class="setting-copy">
+                  <div class="setting-label">
+                    Player Numbers
+                  </div>
+
+                  <div class="setting-help">
+                    Show roster numbers next to player names.
+                  </div>
+                </div>
+
+                <ion-toggle
+                  v-model="showNumbers"
+                  aria-label="Show player numbers"
+                />
+              </div>
+            </ion-card-content>
+          </ion-card>
 
           <ion-button
             expand="block"
@@ -3567,7 +3589,7 @@ input:focus-visible {
   max-height: 85vh;
   overflow-y: auto;
 
-  background: #ffffff;
+  background: #f5f5f5;
 }
 
 .settings-modal-shell {
@@ -3619,6 +3641,16 @@ input:focus-visible {
   font-weight: 700;
 }
 
+.settings-modal-subtitle {
+  margin:
+    0.25rem 0 0;
+
+  font-size: 0.9rem;
+  line-height: 1.4;
+
+  color: #6c757d;
+}
+
 .settings-modal-close {
   --padding-start: 0;
   --padding-end: 0;
@@ -3635,76 +3667,100 @@ input:focus-visible {
   font-size: 24px;
 }
 
-.settings-section {
-  margin-top: 1.25rem;
+.settings-modal-shell .settings-card {
+  margin:
+    1rem 0 0;
+
+  border-radius: 1rem;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 3px 14px
+    rgba(0, 0, 0, 0.08);
 }
 
-.settings-label {
-  margin-bottom: 0.6rem;
+.settings-modal-shell .settings-card-content {
+  padding: 1.25rem;
+}
 
-  font-size: 0.78rem;
+.settings-modal-shell .setting-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 1rem;
+
+  margin-bottom: 0.8rem;
+}
+
+.settings-modal-shell .setting-copy {
+  min-width: 0;
+}
+
+.settings-modal-shell .setting-label {
+  display: block;
+
+  font-size: 0.9rem;
   font-weight: 700;
 
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  letter-spacing: normal;
+  text-transform: none;
 
-  color: #495057;
+  color: #1f2d23;
 }
 
-.settings-help {
-  font-size: 0.85rem;
+.settings-modal-shell .setting-help {
+  margin-top: 0.3rem;
+
+  font-size: 0.9rem;
   line-height: 1.35;
 
   color: #6c757d;
 }
 
-.settings-section .view-segment {
-  --background: #eef2ef;
-
-  width: 100%;
-  min-height: 52px;
+.settings-modal-shell .setting-row-icon {
+  font-size: 1.15rem;
+  color: #198754;
 }
 
-.settings-section .view-segment ion-segment-button {
+.settings-modal-shell .view-segment {
+  --background: #eef2ef;
+  --border-radius: 0.75rem;
+
+  width: 100%;
+  min-height: 48px;
+}
+
+.settings-modal-shell .view-segment ion-segment-button {
   --color: #495057;
   --color-checked: #ffffff;
   --indicator-color: #0e4b2e;
 
   min-width: 0;
-  min-height: 52px;
+  min-height: 48px;
 
   font-weight: 700;
 }
 
-.settings-section .view-segment ion-icon {
+.settings-modal-shell .view-segment ion-icon {
   margin-right: 0.35rem;
 
   font-size: 18px;
 }
 
-.settings-toggle-row {
+.settings-modal-shell .number-control {
   display: flex;
   align-items: center;
   justify-content: space-between;
 
   gap: 1rem;
 
-  padding: 1rem;
-
-  border:
-    1px solid #e9ecef;
-
-  border-radius: 0.875rem;
-
-  background: #f8f9fa;
+  min-height: auto;
+  padding: 0;
 }
 
-.settings-toggle-copy {
-  min-width: 0;
-  flex: 1;
-}
-
-.settings-toggle-row ion-toggle {
+.settings-modal-shell .number-control ion-toggle {
   --track-background-checked: #a8c735;
   --handle-background-checked: #0e4b2e;
 

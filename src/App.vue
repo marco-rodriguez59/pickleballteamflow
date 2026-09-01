@@ -1,7 +1,7 @@
 <template>
   <ion-app>
-    <div class="app-shell">
-      <ion-header class="app-header">
+    <div class="app-shell" :class="{ mobile: isMobile }">
+      <ion-header v-if="!isMobile" class="app-header">
         <ion-toolbar class="brand-toolbar">
           <router-link
             to="/"
@@ -118,7 +118,8 @@ import {
   IonLabel,
   IonList,
   IonPopover,
-  IonToolbar
+  IonToolbar,
+  isPlatform
 } from '@ionic/vue';
 
 import {
@@ -143,6 +144,12 @@ export default {
     IonList,
     IonPopover,
     IonToolbar
+  },
+
+  data() {
+    return {
+      isMobile: isPlatform('ios') || isPlatform('android') || isPlatform('mobile')
+    };
   },
 
   setup() {
@@ -246,6 +253,19 @@ ion-button::part(native) {
     1.25rem
     calc(
       2rem +
+      env(safe-area-inset-bottom)
+    );
+}
+
+.app-shell.mobile .page-container {
+  padding:
+    calc(
+      0.75rem +
+      env(safe-area-inset-top)
+    )
+    1.25rem
+    calc(
+      85px +
       env(safe-area-inset-bottom)
     );
 }
