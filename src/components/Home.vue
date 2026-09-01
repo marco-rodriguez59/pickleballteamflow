@@ -86,6 +86,7 @@
             </div>
 
             <ion-textarea
+              ref="rosterTextarea"
               v-model="namesText"
               class="roster-textarea"
               fill="outline"
@@ -94,6 +95,7 @@
               placeholder="John Smith&#10;Sara Johnson&#10;Mike Davis"
               aria-label="Player roster"
               helper-text="8–24 players are supported."
+              @ionInput="handleRosterInput"
             />
 
             <input
@@ -1123,6 +1125,55 @@ export default {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     },
+    async handleRosterInput() {
+  if (!this.isMobile) {
+    return;
+  }
+
+  await this.$nextTick();
+
+  window.setTimeout(async () => {
+    const textarea =
+      this.$refs.rosterTextarea?.$el ||
+      this.$refs.rosterTextarea;
+
+    const content =
+      document.querySelector('.app-content');
+
+    if (
+      !textarea ||
+      !content ||
+      typeof content.getScrollElement !== 'function'
+    ) {
+      return;
+    }
+
+    const scrollElement =
+      await content.getScrollElement();
+
+    const rect =
+      textarea.getBoundingClientRect();
+
+    const viewportHeight =
+      window.visualViewport?.height ||
+      window.innerHeight;
+
+    // Leave room above the fixed mobile navigation
+    // and a little breathing room below the cursor.
+    const visibleBottom =
+      viewportHeight - 100;
+
+    if (rect.bottom > visibleBottom) {
+      const scrollAmount =
+        rect.bottom - visibleBottom;
+
+      scrollElement.scrollBy({
+        top: scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  }, 75);
+},
 
     async handleImageUpload(event) {
       const file = event.target.files[0];
