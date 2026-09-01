@@ -45,6 +45,38 @@
         </div>
       </ion-content>
 
+      <nav v-if="isMobile" class="main-tab-bar">
+        <button
+          type="button"
+          class="tab-button"
+          :class="{ active: $route.path === '/' }"
+          @click="$router.push('/')"
+        >
+          <ion-icon :icon="homeOutline" aria-hidden="true" />
+          <span class="tab-label">Home</span>
+        </button>
+
+        <button
+          type="button"
+          class="tab-button"
+          :class="{ active: $route.path === '/about' }"
+          @click="$router.push('/about')"
+        >
+          <ion-icon :icon="informationCircleOutline" aria-hidden="true" />
+          <span class="tab-label">About</span>
+        </button>
+
+        <button
+          type="button"
+          class="tab-button"
+          :class="{ active: $route.path === '/settings' }"
+          @click="$router.push('/settings')"
+        >
+          <ion-icon :icon="settingsOutline" aria-hidden="true" />
+          <span class="tab-label">Settings</span>
+        </button>
+      </nav>
+
       <ion-popover
         trigger="main-menu-trigger"
         trigger-action="click"
@@ -268,6 +300,76 @@ ion-button::part(native) {
       85px +
       env(safe-area-inset-bottom)
     );
+}
+
+/* =========================================================
+   TAB BAR (MOBILE ONLY)
+========================================================= */
+
+.main-tab-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+
+  display: flex;
+
+  height: 65px;
+
+  border-top:
+    1px solid #dee2e6;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 -2px 8px
+    rgba(0, 0, 0, 0.08);
+
+  padding-bottom:
+    env(safe-area-inset-bottom);
+}
+
+.tab-button {
+  flex: 1;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  gap: 2px;
+
+  border: 0;
+  background: transparent;
+
+  color: #6c757d;
+
+  font-family: inherit;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+
+  cursor: pointer;
+
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tab-button ion-icon {
+  font-size: 24px;
+}
+
+.tab-button.active {
+  color: #0e4b2e;
+}
+
+.tab-button:not([disabled]):active {
+  color: #0e4b2e;
+}
+
+.tab-button[disabled] {
+  opacity: 0.4;
+  cursor: default;
 }
 
 ion-popover {
