@@ -437,6 +437,69 @@
             v-show="!round.closed"
             class="round-content"
           >
+            <!-- Sit Out -->
+            <div
+              v-if="round.sitOut.length"
+              class="sit-out-card"
+            >
+              <div class="sit-out-heading">
+                <div>
+                  <div class="sit-out-label">
+                    THIS ROUND
+                  </div>
+
+                  <h4 class="sit-out-title">
+                    Sit Out
+                  </h4>
+                </div>
+
+                <span
+                  class="sit-out-count"
+                  :aria-label="
+                    round.sitOut.length +
+                    ' players sitting out'
+                  "
+                >
+                  {{ round.sitOut.length }}
+                </span>
+              </div>
+
+              <div class="sit-out-players">
+                <span
+                  v-for="player in round.sitOut"
+                  :key="player.id"
+                  class="sit-out-player"
+                >
+                  <span
+                    v-if="showNumbers"
+                    class="sit-out-player-number"
+                  >
+                    {{ player.id }}
+                  </span>
+
+                  <span class="sit-out-player-name">
+                    {{ player.name }}
+                  </span>
+                </span>
+              </div>
+
+              <div
+                v-if="!round.closed"
+                class="sit-out-help"
+              >
+                <ion-icon
+                  :icon="informationCircleOutline"
+                  aria-hidden="true"
+                />
+
+                <span>
+                  Need to make a change? Tap any court
+                  player to swap them with someone sitting
+                  out.
+                </span>
+              </div>
+            </div>
+
             <div class="courts-grid">
               <div
                 v-for="court in round.courts"
@@ -636,69 +699,6 @@
                 }}
                 idle this round.
               </span>
-            </div>
-
-            <!-- Sit Out -->
-            <div
-              v-if="round.sitOut.length"
-              class="sit-out-card"
-            >
-              <div class="sit-out-heading">
-                <div>
-                  <div class="sit-out-label">
-                    THIS ROUND
-                  </div>
-
-                  <h4 class="sit-out-title">
-                    Sit Out
-                  </h4>
-                </div>
-
-                <span
-                  class="sit-out-count"
-                  :aria-label="
-                    round.sitOut.length +
-                    ' players sitting out'
-                  "
-                >
-                  {{ round.sitOut.length }}
-                </span>
-              </div>
-
-              <div class="sit-out-players">
-                <span
-                  v-for="player in round.sitOut"
-                  :key="player.id"
-                  class="sit-out-player"
-                >
-                  <span
-                    v-if="showNumbers"
-                    class="sit-out-player-number"
-                  >
-                    {{ player.id }}
-                  </span>
-
-                  <span class="sit-out-player-name">
-                    {{ player.name }}
-                  </span>
-                </span>
-              </div>
-
-              <div
-                v-if="!round.closed"
-                class="sit-out-help"
-              >
-                <ion-icon
-                  :icon="informationCircleOutline"
-                  aria-hidden="true"
-                />
-
-                <span>
-                  Need to make a change? Tap any court
-                  player to swap them with someone sitting
-                  out.
-                </span>
-              </div>
             </div>
           </div>
 
@@ -2583,6 +2583,7 @@ export default {
 
 .sit-out-card {
   margin-top: 1rem;
+  margin-bottom: 1rem;
 
   padding: 1rem;
 
