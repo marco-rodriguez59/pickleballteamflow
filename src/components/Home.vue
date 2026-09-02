@@ -209,7 +209,7 @@
               <strong>
                 {{ Math.max(players.length - (courtCount * 4), 0) }}
               </strong>
-              <span>Sit Out</span>
+              <span>Sitting Out</span>
             </div>
           </div>
 
@@ -625,7 +625,7 @@
                         v-if="showNumbers"
                         class="player-number"
                       >
-                        {{ player.id }}
+                        #{{ player.id }}
                       </span>
 
                       <span class="vs-player-name">
