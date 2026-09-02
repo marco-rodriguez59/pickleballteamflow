@@ -47,8 +47,8 @@
                   Player Roster
                 </div>
 
-                <div class="small text-secondary">
-                  Enter one player per line.
+                <div class="roster-instruction">
+                  Tap the box below and enter one player per line.
                 </div>
               </div>
 
@@ -92,7 +92,7 @@
               fill="outline"
               :rows="6"
               :auto-grow="true"
-              placeholder="John Smith&#10;Sara Johnson&#10;Mike Davis"
+              placeholder="Tap here to enter player names...&#10;John&#10;Sara"
               aria-label="Player roster"
               helper-text="8–24 players are supported."
               @ionInput="handleRosterInput"
@@ -207,9 +207,9 @@
 
             <div>
               <strong>
-                {{ Math.min(players.length, courtCount * 4) }}
+                {{ Math.max(players.length - (courtCount * 4), 0) }}
               </strong>
-              <span>Playing</span>
+              <span>Sit Out</span>
             </div>
           </div>
 
@@ -429,8 +429,9 @@
                   <span
                     v-if="showNumbers"
                     class="sit-out-player-number"
+                    :aria-label="'Player number ' + player.id"
                   >
-                    {{ player.id }}
+                    #{{ player.id }}
                   </span>
 
                   <span class="sit-out-player-name">
@@ -515,7 +516,7 @@
                         v-if="showNumbers"
                         class="player-number"
                       >
-                        {{ player.id }}
+                        #{{ player.id }}
                       </span>
 
                       <span class="player-name-text">
@@ -574,7 +575,7 @@
                         v-if="showNumbers"
                         class="player-number"
                       >
-                        {{ player.id }}
+                        #{{ player.id }}
                       </span>
 
                       <span class="vs-player-name">
@@ -1861,6 +1862,26 @@ export default {
   gap: 0.35rem;
 
   flex-shrink: 0;
+}
+  .roster-instruction {
+  margin-top: 0.2rem;
+  color: #495057;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.roster-textarea {
+  --background: #fbfdf8;
+  --border-color: #0e4b2e;
+  --border-width: 2px;
+  --border-radius: 0.75rem;
+  --highlight-color-focused: #198754;
+
+  margin-top: 0.75rem;
+}
+
+.roster-textarea::part(native) {
+  font-size: 1rem;
 }
 
 .clear-roster-button {
