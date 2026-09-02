@@ -65,7 +65,7 @@
                 {{ players.length }}
                 player{{ players.length === 1 ? '' : 's' }}
               </div>
-            
+                          
               <ion-button
                 v-if="players.length"
                 fill="clear"
@@ -339,60 +339,61 @@
               </h3>
             </div>
 
-            <div class="round-actions">
-              <span
-                class="round-status"
-                :class="
-                  round.closed
-                    ? 'round-status-closed'
-                    : 'round-status-open'
-                "
-              >
-                {{
-                  round.closed
-                    ? 'Completed'
-                    : 'Open'
-                }}
-              </span>
+           <div class="round-actions">
+            <span
+              class="round-status"
+              :class="
+                round.closed
+                  ? 'round-status-closed'
+                  : 'round-status-open'
+              "
+            >
+              {{
+                round.closed
+                  ? 'Completed'
+                  : 'Open'
+              }}
+            </span>
+          
+            <!-- Open round: mark the game as completed -->
+            <ion-button
+              v-if="!round.closed"
+              size="small"
+              fill="outline"
+              color="success"
+              class="round-action-button"
+              :aria-label="'Complete round ' + round.index"
+              @click="completeRound(round)"
+            >
+              <ion-icon
+                :icon="checkmarkCircleOutline"
+                slot="start"
+              />
+          
+              Complete Round
+            </ion-button>
 
-              <ion-button
-                size="small"
-                fill="outline"
-                :color="
-                  round.closed
-                    ? 'medium'
-                    : 'success'
-                "
-                class="round-action-button"
-                :aria-label="
-                  round.closed
-                    ? 'Reopen round ' + round.index
-                    : 'Close round ' + round.index
-                "
-                @click="toggleRoundClosed(round)"
-              >
-                <ion-icon
-                  :icon="
-                    round.closed
-                      ? refreshOutline
-                      : checkmarkCircleOutline
-                  "
-                  slot="start"
-                />
-
-                {{
-                  round.closed
-                    ? 'Reopen'
-                    : 'Close Round'
-                }}
-              </ion-button>
-            </div>
+            <!-- Completed round: only show/hide its details -->
+            <ion-button
+              v-else
+              size="small"
+              fill="clear"
+              color="medium"
+              class="round-action-button"
+              :aria-label="
+                (isRoundExpanded(round) ? 'Hide' : 'View') +
+                ' round ' +
+                round.index
+              "
+              @click="toggleRoundExpanded(round)"
+            >
+              {{
+                isRoundExpanded(round)
+                  ? 'Hide'
+                  : 'View'
+              }}
+            </ion-button>
           </div>
-
-          <div
-            v-show="!round.closed"
-            class="round-content"
-          >
             <!-- Sit Out -->
             <div
               v-if="round.sitOut.length"
@@ -474,6 +475,24 @@
                   <h4 class="court-title">
                     Court {{ court.courtNumber }}
                   </h4>
+                </div>
+                <div
+                  v-if="round.closed"
+                  class="completed-round-actions"
+                >
+                  <ion-button
+                    fill="clear"
+                    size="small"
+                    color="medium"
+                    @click="markRoundOpen(round)"
+                  >
+                    <ion-icon
+                      :icon="refreshOutline"
+                      slot="start"
+                    />
+                
+                    Mark as Open
+                  </ion-button>
                 </div>
 
                 <!-- LIST VIEW -->
@@ -1080,6 +1099,8 @@ export default {
         round => !round.closed
       );
     },
+    
+    expandedRounds: {},
 
     sortedSchedule() {
       const open = this.schedule.filter(r => !r.closed).sort((a, b) => a.index - b.index);
@@ -1280,23 +1301,41 @@ export default {
 
         return;
       }
-
-      const people =
-        this.namesText
-          .split('\n')
-          .map(name => name.trim())
-          .filter(
-            name =>
-              name.length > 0
-          );
-
-      if (people.length === 0) {
-        this.showMessage(
-          'Please enter valid names.'
-        );
-
-        return;
-      }
+      isRoundExpanded(round) {
+          return this.expandedRounds[round.index] !== false;
+        },
+        
+        toggleRoundExpanded(round) {
+          this.expandedRounds[round.index] =
+            !this.isRoundExpanded(round);
+        },
+        
+        completeRound(round) {
+          round.closed = true;
+          this.expandedRounds[round.index] = false;
+        },
+        
+        markRoundOpen(round) {
+          round.closed = false;
+          this.expandedRounds[round.index] = true;
+        },
+        
+              const people =
+                this.namesText
+                  .split('\n')
+                  .map(name => name.trim())
+                  .filter(
+                    name =>
+                      name.length > 0
+                  );
+        
+              if (people.length === 0) {
+                this.showMessage(
+                  'Please enter valid names.'
+                );
+        
+                return;
+              }
 
       const uniquePeople =
         [...new Set(people)];
