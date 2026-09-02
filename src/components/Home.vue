@@ -52,37 +52,37 @@
                 </div>
               </div>
 
-            <div class="roster-heading-actions">
-              <div
-                class="player-count"
-                :class="{
-                  'player-count-ready':
-                    players.length >= 8 &&
-                    players.length <= 24
-                }"
-                aria-live="polite"
-              >
-                {{ players.length }}
-                player{{ players.length === 1 ? '' : 's' }}
+              <div class="roster-heading-actions">
+                <div
+                  class="player-count"
+                  :class="{
+                    'player-count-ready':
+                      players.length >= 8 &&
+                      players.length <= 24
+                  }"
+                  aria-live="polite"
+                >
+                  {{ players.length }}
+                  player{{ players.length === 1 ? '' : 's' }}
+                </div>
+
+                <ion-button
+                  v-if="players.length"
+                  fill="clear"
+                  size="small"
+                  color="medium"
+                  class="clear-roster-button"
+                  aria-label="Clear player roster"
+                  @click="clearRoster()"
+                >
+                  <ion-icon
+                    :icon="trashOutline"
+                    slot="start"
+                  />
+
+                  Clear Roster
+                </ion-button>
               </div>
-            
-              <ion-button
-                v-if="players.length"
-                fill="clear"
-                size="small"
-                color="medium"
-                class="clear-roster-button"
-                aria-label="Clear player roster"
-                @click="clearRoster()"
-              >
-                <ion-icon
-                  :icon="trashOutline"
-                  slot="start"
-                />
-            
-                Clear Roster
-              </ion-button>
-            </div>
             </div>
 
             <ion-textarea
@@ -207,7 +207,13 @@
 
             <div>
               <strong>
-                {{ Math.max(players.length - (courtCount * 4), 0) }}
+                {{
+                  Math.max(
+                    players.length -
+                      (courtCount * 4),
+                    0
+                  )
+                }}
               </strong>
               <span>Sitting Out</span>
             </div>
@@ -356,41 +362,53 @@
               </span>
 
               <ion-button
+                v-if="!round.closed"
                 size="small"
                 fill="outline"
-                :color="
-                  round.closed
-                    ? 'medium'
-                    : 'success'
-                "
+                color="success"
                 class="round-action-button"
                 :aria-label="
-                  round.closed
-                    ? 'Reopen round ' + round.index
-                    : 'Close round ' + round.index
+                  'Complete round ' +
+                  round.index
                 "
-                @click="toggleRoundClosed(round)"
+                @click="completeRound(round)"
               >
                 <ion-icon
-                  :icon="
-                    round.closed
-                      ? refreshOutline
-                      : checkmarkCircleOutline
-                  "
+                  :icon="checkmarkCircleOutline"
                   slot="start"
                 />
 
+                Complete Round
+              </ion-button>
+
+              <ion-button
+                v-else
+                size="small"
+                fill="clear"
+                color="medium"
+                class="round-action-button"
+                :aria-label="
+                  (
+                    isRoundExpanded(round)
+                      ? 'Hide'
+                      : 'View'
+                  ) +
+                  ' round ' +
+                  round.index
+                "
+                @click="toggleRoundExpanded(round)"
+              >
                 {{
-                  round.closed
-                    ? 'Reopen'
-                    : 'Close Round'
+                  isRoundExpanded(round)
+                    ? 'Hide'
+                    : 'View'
                 }}
               </ion-button>
             </div>
           </div>
 
           <div
-            v-show="!round.closed"
+            v-show="isRoundExpanded(round)"
             class="round-content"
           >
             <!-- Sit Out -->
@@ -429,7 +447,10 @@
                   <span
                     v-if="showNumbers"
                     class="sit-out-player-number"
-                    :aria-label="'Player number ' + player.id"
+                    :aria-label="
+                      'Player number ' +
+                      player.id
+                    "
                   >
                     #{{ player.id }}
                   </span>
@@ -457,6 +478,7 @@
               </div>
             </div>
 
+            <!-- Courts -->
             <div class="courts-grid">
               <div
                 v-for="court in round.courts"
@@ -547,7 +569,10 @@
                     </div>
 
                     <button
-                      v-for="player in court.players.slice(0, 2)"
+                      v-for="
+                        player in
+                        court.players.slice(0, 2)
+                      "
                       :key="player.id"
                       type="button"
                       class="vs-player"
@@ -597,7 +622,10 @@
                     </div>
 
                     <button
-                      v-for="player in court.players.slice(2, 4)"
+                      v-for="
+                        player in
+                        court.players.slice(2, 4)
+                      "
                       :key="player.id"
                       type="button"
                       class="vs-player"
@@ -639,7 +667,10 @@
 
             <!-- Idle Court Notice -->
             <div
-              v-if="round.courts.length < courtCount"
+              v-if="
+                round.courts.length <
+                courtCount
+              "
               class="idle-courts"
             >
               <ion-icon
@@ -648,30 +679,54 @@
               />
 
               <span>
-                {{ courtCount - round.courts.length }}
+                {{
+                  courtCount -
+                  round.courts.length
+                }}
                 court{{
-                  courtCount - round.courts.length === 1
+                  courtCount -
+                    round.courts.length ===
+                  1
                     ? ''
                     : 's'
                 }}
                 idle this round.
               </span>
             </div>
-          </div>
 
-          <div
-            v-if="round.closed"
-            class="closed-round-summary"
-          >
-            <ion-icon
-              :icon="checkmarkCircleOutline"
-              aria-hidden="true"
-            />
+            <!-- Completed Round Actions -->
+            <div
+              v-if="round.closed"
+              class="closed-round-summary"
+            >
+              <ion-icon
+                :icon="checkmarkCircleOutline"
+                aria-hidden="true"
+              />
 
-            <span>
-              Round {{ round.index }} is complete.
-              Reopen it to view or make changes.
-            </span>
+              <span>
+                Round {{ round.index }} is complete.
+              </span>
+
+              <ion-button
+                fill="clear"
+                size="small"
+                color="medium"
+                :aria-label="
+                  'Mark round ' +
+                  round.index +
+                  ' as open'
+                "
+                @click="markRoundOpen(round)"
+              >
+                <ion-icon
+                  :icon="refreshOutline"
+                  slot="start"
+                />
+
+                Mark as Open
+              </ion-button>
+            </div>
           </div>
         </ion-card>
       </div>
@@ -734,7 +789,10 @@
 
           <div class="sub-player-list">
             <button
-              v-for="p in subModal.round?.sitOut || []"
+              v-for="
+                p in
+                subModal.round?.sitOut || []
+              "
               :key="p.id"
               type="button"
               class="sub-player-option"
@@ -751,7 +809,7 @@
                   v-if="showNumbers"
                   class="player-number"
                 >
-                  {{ p.id }}
+                  #{{ p.id }}
                 </span>
 
                 <span class="sub-player-option-name-text">
@@ -917,7 +975,6 @@
       position="bottom"
       @didDismiss="toast.show = false"
     />
-
   </div>
 </template>
 
@@ -1012,11 +1069,20 @@ export default {
 
   data() {
     return {
-      isMobile: isPlatform('ios') || isPlatform('android') || isPlatform('mobile'),
+      isMobile:
+        isPlatform('ios') ||
+        isPlatform('android') ||
+        isPlatform('mobile'),
+
       namesText: '',
       courtCount: 2,
       roundCount: 7,
       schedule: [],
+
+      // UI-only state.
+      // Does not change whether a round is completed.
+      expandedRounds: {},
+
       isProcessing: false,
       ocrProgress: '',
 
@@ -1081,10 +1147,13 @@ export default {
       );
     },
 
+    // Always keep rounds in their original numbered order.
+    // Completing a round should not move it elsewhere.
     sortedSchedule() {
-      const open = this.schedule.filter(r => !r.closed).sort((a, b) => a.index - b.index);
-      const closed = this.schedule.filter(r => r.closed).sort((a, b) => a.index - b.index);
-      return [...open, ...closed];
+      return [...this.schedule].sort(
+        (a, b) =>
+          a.index - b.index
+      );
     }
   },
 
@@ -1118,66 +1187,85 @@ export default {
     },
 
     scrollToTop() {
-      const content = document.querySelector('.app-content');
+      const content =
+        document.querySelector(
+          '.app-content'
+        );
 
-      if (content && typeof content.scrollToTop === 'function') {
+      if (
+        content &&
+        typeof content.scrollToTop ===
+          'function'
+      ) {
         content.scrollToTop(300);
       } else {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
       }
     },
+
     async handleRosterInput() {
-  if (!this.isMobile) {
-    return;
-  }
+      if (!this.isMobile) {
+        return;
+      }
 
-  await this.$nextTick();
+      await this.$nextTick();
 
-  window.setTimeout(async () => {
-    const textarea =
-      this.$refs.rosterTextarea?.$el ||
-      this.$refs.rosterTextarea;
+      window.setTimeout(async () => {
+        const textarea =
+          this.$refs.rosterTextarea?.$el ||
+          this.$refs.rosterTextarea;
 
-    const content =
-      document.querySelector('.app-content');
+        const content =
+          document.querySelector(
+            '.app-content'
+          );
 
-    if (
-      !textarea ||
-      !content ||
-      typeof content.getScrollElement !== 'function'
-    ) {
-      return;
-    }
+        if (
+          !textarea ||
+          !content ||
+          typeof content.getScrollElement !==
+            'function'
+        ) {
+          return;
+        }
 
-    const scrollElement =
-      await content.getScrollElement();
+        const scrollElement =
+          await content.getScrollElement();
 
-    const rect =
-      textarea.getBoundingClientRect();
+        const rect =
+          textarea.getBoundingClientRect();
 
-    const viewportHeight =
-      window.visualViewport?.height ||
-      window.innerHeight;
+        const viewportHeight =
+          window.visualViewport?.height ||
+          window.innerHeight;
 
-    // Leave room above the fixed mobile navigation
-    // and a little breathing room below the cursor.
-    const visibleBottom =
-      viewportHeight - 100;
+        // Leave room above the fixed mobile navigation
+        // and a little breathing room below the cursor.
+        const visibleBottom =
+          viewportHeight - 100;
 
-    if (rect.bottom > visibleBottom) {
-      const scrollAmount =
-        rect.bottom - visibleBottom;
+        if (
+          rect.bottom >
+          visibleBottom
+        ) {
+          const scrollAmount =
+            rect.bottom -
+            visibleBottom;
 
-      scrollElement.scrollBy({
-        top: scrollAmount,
-        behavior: 'smooth'
-      });
-    }
-  }, 75);
-},
+          scrollElement.scrollBy({
+            top: scrollAmount,
+            behavior: 'smooth'
+          });
+        }
+      }, 75);
+    },
 
     async handleImageUpload(event) {
-      const file = event.target.files[0];
+      const file =
+        event.target.files[0];
 
       if (!file) return;
 
@@ -1194,24 +1282,34 @@ export default {
 
         const {
           data: { text }
-        } = await worker.recognize(file);
+        } =
+          await worker.recognize(
+            file
+          );
 
         await worker.terminate();
 
-        const extractedNames = text
-          .split('\n')
-          .map(line => line.trim())
-          .filter(
-            line =>
-              line.length > 0 &&
-              line.length < 50
-          )
-          .join('\n');
+        const extractedNames =
+          text
+            .split('\n')
+            .map(
+              line =>
+                line.trim()
+            )
+            .filter(
+              line =>
+                line.length > 0 &&
+                line.length < 50
+            )
+            .join('\n');
 
         if (extractedNames) {
-          if (this.namesText.trim()) {
+          if (
+            this.namesText.trim()
+          ) {
             this.namesText +=
-              '\n' + extractedNames;
+              '\n' +
+              extractedNames;
           } else {
             this.namesText =
               extractedNames;
@@ -1219,7 +1317,8 @@ export default {
 
           this.showMessage(
             `Successfully extracted ${
-              extractedNames.split('\n').length
+              extractedNames.split('\n')
+                .length
             } names from image!`,
             'alert alert-success'
           );
@@ -1284,13 +1383,18 @@ export default {
       const people =
         this.namesText
           .split('\n')
-          .map(name => name.trim())
+          .map(
+            name =>
+              name.trim()
+          )
           .filter(
             name =>
               name.length > 0
           );
 
-      if (people.length === 0) {
+      if (
+        people.length === 0
+      ) {
         this.showMessage(
           'Please enter valid names.'
         );
@@ -1312,9 +1416,11 @@ export default {
       }
 
       const roster =
-        this.players.map(p => ({
-          ...p
-        }));
+        this.players.map(
+          p => ({
+            ...p
+          })
+        );
 
       const partnerCount =
         new Map();
@@ -1346,12 +1452,14 @@ export default {
           p => {
             const rp =
               roster.find(
-                x => x.id === p.id
+                x =>
+                  x.id === p.id
               );
 
             if (rp) {
               rp.sitOuts += 1;
-              rp.lastSatRound = r;
+              rp.lastSatRound =
+                r;
             }
           }
         );
@@ -1359,7 +1467,11 @@ export default {
         rounds.push(round);
       }
 
-      this.schedule = rounds;
+      this.schedule =
+        rounds;
+
+      // A brand-new schedule should begin fully expanded.
+      this.expandedRounds = {};
 
       this.showMessage(
         'Successfully generated ' +
@@ -1368,19 +1480,23 @@ export default {
         'alert alert-success'
       );
     },
+
     clearRoster() {
       this.namesText = '';
       this.schedule = [];
-    
+      this.expandedRounds = {};
+
       this.closeSubModal();
-    
+
       this.showMessage(
         'Player roster and court assignments cleared.',
         'alert alert-success'
       );
     },
+
     clearAll() {
       this.schedule = [];
+      this.expandedRounds = {};
 
       this.showMessage(
         'Court assignments cleared.',
@@ -1388,10 +1504,51 @@ export default {
       );
     },
 
-    toggleRoundClosed(round) {
-      round.closed =
-        !round.closed;
+    // ---------------------------------------------------------
+    // ROUND STATUS / DISPLAY
+    // ---------------------------------------------------------
+
+    isRoundExpanded(round) {
+      return (
+        this.expandedRounds[
+          round.index
+        ] !== false
+      );
     },
+
+    toggleRoundExpanded(round) {
+      this.expandedRounds[
+        round.index
+      ] =
+        !this.isRoundExpanded(
+          round
+        );
+    },
+
+    completeRound(round) {
+      // Preserve the existing "closed" business state
+      // because regeneration already uses it to protect
+      // completed rounds.
+      round.closed = true;
+
+      // Collapse in place without moving the round.
+      this.expandedRounds[
+        round.index
+      ] = false;
+    },
+
+    markRoundOpen(round) {
+      round.closed = false;
+
+      // When intentionally reopened, show its assignments.
+      this.expandedRounds[
+        round.index
+      ] = true;
+    },
+
+    // ---------------------------------------------------------
+    // SUBSTITUTION
+    // ---------------------------------------------------------
 
     openSubModal(
       round,
@@ -1422,7 +1579,8 @@ export default {
         round,
         court,
         player
-      } = this.subModal;
+      } =
+        this.subModal;
 
       const playerIdx =
         court.players.findIndex(
@@ -1433,29 +1591,43 @@ export default {
       court.players.splice(
         playerIdx,
         1,
-        { ...sitOutPlayer }
+        {
+          ...sitOutPlayer
+        }
       );
 
-      if (court.team1Ids) {
+      if (
+        court.team1Ids
+      ) {
         const t1idx =
           court.team1Ids.indexOf(
             player.id
           );
 
-        if (t1idx !== -1) {
-          court.team1Ids[t1idx] =
+        if (
+          t1idx !== -1
+        ) {
+          court.team1Ids[
+            t1idx
+          ] =
             sitOutPlayer.id;
         }
       }
 
-      if (court.team2Ids) {
+      if (
+        court.team2Ids
+      ) {
         const t2idx =
           court.team2Ids.indexOf(
             player.id
           );
 
-        if (t2idx !== -1) {
-          court.team2Ids[t2idx] =
+        if (
+          t2idx !== -1
+        ) {
+          court.team2Ids[
+            t2idx
+          ] =
             sitOutPlayer.id;
         }
       }
@@ -1483,6 +1655,10 @@ export default {
         'alert alert-success'
       );
     },
+
+    // ---------------------------------------------------------
+    // REGENERATE OPEN ROUNDS
+    // ---------------------------------------------------------
 
     regenerateRemaining() {
       if (
@@ -1517,11 +1693,14 @@ export default {
 
       this.schedule.forEach(
         round => {
-          if (round.closed) {
+          if (
+            round.closed
+          ) {
             round.courts.forEach(
               court => {
                 if (
-                  court.players.length >= 4
+                  court.players.length >=
+                  4
                 ) {
                   if (
                     court.team1Ids &&
@@ -1534,10 +1713,16 @@ export default {
                       court.team2Ids;
 
                     const pk1 =
-                      keyPair(a, b);
+                      keyPair(
+                        a,
+                        b
+                      );
 
                     const pk2 =
-                      keyPair(c, d);
+                      keyPair(
+                        c,
+                        d
+                      );
 
                     partnerCount.set(
                       pk1,
@@ -1644,11 +1829,14 @@ export default {
                 const rp =
                   roster.find(
                     x =>
-                      x.id === p.id
+                      x.id ===
+                      p.id
                   );
 
                 if (rp) {
-                  rp.sitOuts += 1;
+                  rp.sitOuts +=
+                    1;
+
                   rp.lastSatRound =
                     round.index;
                 }
@@ -1658,9 +1846,11 @@ export default {
         }
       );
 
-      const newSchedule = [];
+      const newSchedule =
+        [];
 
-      let roundIndex = 1;
+      let roundIndex =
+        1;
 
       this.schedule.forEach(
         existingRound => {
@@ -1669,7 +1859,8 @@ export default {
           ) {
             newSchedule.push({
               ...existingRound,
-              index: roundIndex
+              index:
+                roundIndex
             });
           } else {
             const newRound =
@@ -1687,11 +1878,14 @@ export default {
                 const rp =
                   roster.find(
                     x =>
-                      x.id === p.id
+                      x.id ===
+                      p.id
                   );
 
                 if (rp) {
-                  rp.sitOuts += 1;
+                  rp.sitOuts +=
+                    1;
+
                   rp.lastSatRound =
                     roundIndex;
                 }
