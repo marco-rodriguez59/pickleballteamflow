@@ -4,19 +4,28 @@
          GAME SETUP
     ========================================================== -->
     <section class="setup-section mb-4">
-      <div class="page-heading text-center mb-4">
+    <div class="page-heading home-brand-heading mb-4">
+      <img
+        src="../assets/pickleball-team-flow-mark.png"
+        alt=""
+        class="home-brand-logo"
+        aria-hidden="true"
+      >
+    
+      <div class="home-heading-copy">
         <div class="app-eyebrow">
           PICKLEBALL TEAM FLOW
         </div>
-
+    
         <h1 class="page-title mb-2">
           Pickleball Court Assignments
         </h1>
-
+    
         <p class="page-subtitle text-secondary mb-0">
           Set up your players, courts, and rounds.
         </p>
       </div>
+    </div>
 
       <ion-card class="setup-card">
         <ion-card-content class="setup-card-content">
@@ -1948,6 +1957,51 @@ export default {
   margin-left: auto;
   margin-right: auto;
 }
+.home-brand-heading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 1rem;
+
+  text-align: left;
+}
+
+.home-brand-logo {
+  width: 58px;
+  height: 58px;
+
+  flex: 0 0 58px;
+
+  object-fit: contain;
+}
+
+.home-heading-copy {
+  min-width: 0;
+}
+
+@media (max-width: 575.98px) {
+  .home-brand-heading {
+    gap: 0.75rem;
+
+    justify-content: flex-start;
+  }
+
+  .home-brand-logo {
+    width: 52px;
+    height: 52px;
+
+    flex-basis: 52px;
+  }
+
+  .home-heading-copy .page-title {
+    font-size: clamp(
+      1.55rem,
+      7vw,
+      2rem
+    );
+  }
+} 
 
 .page-title {
   font-size: clamp(
