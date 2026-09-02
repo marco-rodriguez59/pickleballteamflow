@@ -625,7 +625,7 @@
                         v-if="showNumbers"
                         class="player-number"
                       >
-                        {{ player.id }}
+                        #{{ player.id }}
                       </span>
 
                       <span class="vs-player-name">
