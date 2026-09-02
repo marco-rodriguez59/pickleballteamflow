@@ -393,7 +393,13 @@
                   : 'View'
               }}
             </ion-button>
-          </div>
+                </div>
+          <!-- end round-actions -->
+
+          <div
+            v-show="isRoundExpanded(round)"
+            class="round-content"
+          >
             <!-- Sit Out -->
             <div
               v-if="round.sitOut.length"
@@ -440,60 +446,6 @@
                   </span>
                 </span>
               </div>
-
-              <div
-                v-if="!round.closed"
-                class="sit-out-help"
-              >
-                <ion-icon
-                  :icon="informationCircleOutline"
-                  aria-hidden="true"
-                />
-
-                <span>
-                  Need to make a change? Tap any court
-                  player to swap them with someone sitting
-                  out.
-                </span>
-              </div>
-            </div>
-
-            <div class="courts-grid">
-              <div
-                v-for="court in round.courts"
-                :key="court.courtNumber"
-                class="court-card"
-              >
-                <div class="court-card-header">
-                  <div
-                    class="court-heading-icon"
-                    aria-hidden="true"
-                  >
-                    <ion-icon :icon="peopleOutline" />
-                  </div>
-
-                  <h4 class="court-title">
-                    Court {{ court.courtNumber }}
-                  </h4>
-                </div>
-                <div
-                  v-if="round.closed"
-                  class="completed-round-actions"
-                >
-                  <ion-button
-                    fill="clear"
-                    size="small"
-                    color="medium"
-                    @click="markRoundOpen(round)"
-                  >
-                    <ion-icon
-                      :icon="refreshOutline"
-                      slot="start"
-                    />
-                
-                    Mark as Open
-                  </ion-button>
-                </div>
 
                 <!-- LIST VIEW -->
                 <div
@@ -677,6 +629,59 @@
               </span>
             </div>
           </div>
+                        <div
+                v-if="!round.closed"
+                class="sit-out-help"
+              >
+                <ion-icon
+                  :icon="informationCircleOutline"
+                  aria-hidden="true"
+                />
+
+                <span>
+                  Need to make a change? Tap any court
+                  player to swap them with someone sitting
+                  out.
+                </span>
+              </div>
+            </div>
+
+            <div class="courts-grid">
+              <div
+                v-for="court in round.courts"
+                :key="court.courtNumber"
+                class="court-card"
+              >
+                <div class="court-card-header">
+                  <div
+                    class="court-heading-icon"
+                    aria-hidden="true"
+                  >
+                    <ion-icon :icon="peopleOutline" />
+                  </div>
+
+                  <h4 class="court-title">
+                    Court {{ court.courtNumber }}
+                  </h4>
+                </div>
+                <div
+                  v-if="round.closed"
+                  class="completed-round-actions"
+                >
+                  <ion-button
+                    fill="clear"
+                    size="small"
+                    color="medium"
+                    @click="markRoundOpen(round)"
+                  >
+                    <ion-icon
+                      :icon="refreshOutline"
+                      slot="start"
+                    />
+                
+                    Mark as Open
+                  </ion-button>
+                </div>
 
           <div
             v-if="round.closed"
