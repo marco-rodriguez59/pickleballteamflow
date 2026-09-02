@@ -209,7 +209,7 @@
               <strong>
                 {{ Math.max(players.length - (courtCount * 4), 0) }}
               </strong>
-              <span>Sit Out</span>
+              <span>Sitting Out</span>
             </div>
           </div>
 
