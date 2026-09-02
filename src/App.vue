@@ -230,8 +230,9 @@ import {
   IonLabel,
   IonList,
   IonPopover,
-  IonToolbar
-} from '@ionic/vue';
+  IonToolbar,
+  isPlatform
+  } from '@ionic/vue';
 
 import {
   homeOutline,
@@ -271,65 +272,34 @@ export default {
   },
 
   data() {
-    return {
-      isNativeApp:
-        Capacitor.isNativePlatform(),
+  return {
+    isNativeApp:
+      Capacitor.isNativePlatform(),
 
-      viewportWidth:
-        window.innerWidth
-    };
-  },
+    isTablet:
+      isPlatform('ipad') ||
+      isPlatform('tablet')
+  };
+},
 
-  computed: {
-    /**
-     * Bottom navigation is intentionally limited
-     * to native phone-sized apps.
-     *
-     * Native iPhone / Android phone:
-     *   bottom navigation
-     *
-     * Native tablet / iPad:
-     *   top header
-     *
-     * Browser / PWA:
-     *   top header regardless of viewport size
-     */
-    useBottomNav() {
-      return (
-        this.isNativeApp &&
-        this.viewportWidth < 768
-      );
-    }
-  },
-
-  mounted() {
-    window.addEventListener(
-      'resize',
-      this.handleResize
+computed: {
+  useBottomNav() {
+    return (
+      this.isNativeApp &&
+      !this.isTablet
     );
-  },
+  }
+},
 
-  beforeUnmount() {
-    window.removeEventListener(
-      'resize',
-      this.handleResize
-    );
-  },
-
-  methods: {
-    handleResize() {
-      this.viewportWidth =
-        window.innerWidth;
-    },
-
-    goTo(path) {
-      if (
-        this.$route.path !== path
-      ) {
-        this.$router.push(path);
-      }
+methods: {
+  goTo(path) {
+    if (
+      this.$route.path !== path
+    ) {
+      this.$router.push(path);
     }
   }
+}
 };
 </script>
 
