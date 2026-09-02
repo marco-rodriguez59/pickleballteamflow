@@ -2117,21 +2117,6 @@ export default {
   font-size: 0.95rem;
   font-weight: 600;
 }
-
-.roster-textarea {
-  --background: #fbfdf8;
-  --border-color: #0e4b2e;
-  --border-width: 2px;
-  --border-radius: 0.75rem;
-  --highlight-color-focused: #198754;
-
-  margin-top: 0.75rem;
-}
-
-.roster-textarea::part(native) {
-  font-size: 1rem;
-}
-
 .clear-roster-button {
   --color: #6c757d;
   --padding-start: 0.45rem;
@@ -2173,8 +2158,8 @@ export default {
 }
 
 .roster-textarea {
-  --background: #ffffff;
-  --border-color: #8b949e;
+  --background: #fbfdf8;
+  --border-color: #0e4b2e;
   --border-width: 2px;
   --border-radius: 0.75rem;
   --highlight-color-focused: #198754;
@@ -2185,9 +2170,14 @@ export default {
   --padding-bottom: 0.85rem;
 
   width: 100%;
+  margin-top: 0.75rem;
 
   font-size: 1rem;
   line-height: 1.55;
+}
+
+.roster-textarea::part(native) {
+  font-size: 1rem;
 }
 
 .scan-button {
