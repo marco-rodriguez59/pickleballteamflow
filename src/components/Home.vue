@@ -2791,12 +2791,19 @@ export default {
 }
 
 .player-name-text,
-.vs-player-name,
 .sit-out-player-name,
 .sub-player-option-name-text {
   min-width: 0;
 
   overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.vs-player-name {
+  min-width: 0;
+
+  white-space: normal;
+  overflow-wrap: normal;
   word-break: normal;
 }
 
