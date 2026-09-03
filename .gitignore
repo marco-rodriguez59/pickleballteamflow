@@ -20,10 +20,16 @@ node_modules/
 .DS_Store
 Thumbs.db
 
-# Certificates (keep these secure!)
+# Certificates / signing files (keep these secure!)
 *.pem
+*.p12
+*.cer
+*.certSigningRequest
+*.mobileprovision
+AuthKey_*.p8
 *.jks
 *.keystore
+*.key
 
 # Temporary conversion script
 convert-icons.js
