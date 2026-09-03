@@ -166,7 +166,7 @@
 
             <div class="about-team-row">
               <div class="about-team-role">
-                Project Manager:
+                Project Manager/Developer:
               </div>
 
               <div class="about-team-name">
