@@ -49,10 +49,11 @@
       <!-- =====================================================
            PAGE CONTENT
       ====================================================== -->
-      <ion-content
-        class="app-content"
-        :fullscreen="false"
-      >
+        <ion-content
+          ref="appContent"
+          class="app-content"
+          :fullscreen="false"
+        >
         <div class="page-container">
           <router-view v-slot="{ Component }">
             <keep-alive>
@@ -292,14 +293,24 @@ computed: {
 },
 
 methods: {
-  goTo(path) {
-    if (
-      this.$route.path !== path
-    ) {
-      this.$router.push(path);
-    }
+goTo(path) {
+  if (this.$route.path !== path) {
+    this.$router.push(path);
   }
 }
+  watch: {
+  '$route.path': {
+    async handler() {
+      await this.$nextTick();
+
+      const content = this.$refs.appContent?.$el;
+
+      if (content?.scrollToTop) {
+        await content.scrollToTop(0);
+      }
+    }
+  }
+},
 };
 </script>
 
