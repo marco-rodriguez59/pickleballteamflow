@@ -293,12 +293,14 @@ computed: {
 },
 
 methods: {
-goTo(path) {
-  if (this.$route.path !== path) {
-    this.$router.push(path);
+  goTo(path) {
+    if (this.$route.path !== path) {
+      this.$router.push(path);
+    }
   }
-}
-  watch: {
+},
+
+watch: {
   '$route.path': {
     async handler() {
       await this.$nextTick();
@@ -310,6 +312,7 @@ goTo(path) {
       }
     }
   }
+}
 },
 };
 </script>
