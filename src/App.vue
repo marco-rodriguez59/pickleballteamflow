@@ -216,12 +216,21 @@
         </ion-content>
       </ion-popover>
     </div>
+
+    <ion-alert
+      :is-open="exitConfirmVisible"
+      header="Exit App"
+      message="Are you sure you want to exit Pickleball Team Flow?"
+      :buttons="exitAlertButtons"
+      @didDismiss="exitConfirmVisible = false"
+    />
   </ion-app>
 </template>
 
 <script>
 import { startUpdateChecks } from './services/updateService';
 import {
+  IonAlert,
   IonApp,
   IonButton,
   IonButtons,
@@ -235,6 +244,8 @@ import {
   IonToolbar,
   isPlatform
   } from '@ionic/vue';
+
+import { App } from '@capacitor/app';
 
 import {
   homeOutline,
@@ -250,15 +261,27 @@ import {
 export default {
   name: 'App',
 
-  mounted() {
+  async mounted() {
     this.stopUpdateChecks = startUpdateChecks();
+
+    if (Capacitor.isNativePlatform()) {
+      this._backButtonListener = await App.addListener('backButton', ({ canGoBack }) => {
+        if (canGoBack) {
+          window.history.back();
+        } else {
+          this.exitConfirmVisible = true;
+        }
+      });
+    }
   },
 
   beforeUnmount() {
     this.stopUpdateChecks?.();
+    this._backButtonListener?.remove();
   },
 
   components: {
+    IonAlert,
     IonApp,
     IonButton,
     IonButtons,
@@ -288,7 +311,21 @@ export default {
 
     isTablet:
       isPlatform('ipad') ||
-      isPlatform('tablet')
+      isPlatform('tablet'),
+
+    exitConfirmVisible: false,
+
+    exitAlertButtons: [
+      {
+        text: 'Cancel',
+        role: 'cancel'
+      },
+      {
+        text: 'Exit',
+        role: 'destructive',
+        handler: () => { App.exitApp(); }
+      }
+    ]
   };
 },
 
