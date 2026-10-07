@@ -983,6 +983,57 @@
     </ion-modal>
 
     <!-- =========================================================
+         RATE APP PROMPT
+    ========================================================== -->
+    <ion-modal
+      :is-open="rateModal.show"
+      class="rate-modal"
+      :backdrop-dismiss="true"
+      @didDismiss="closeRateModal"
+    >
+      <div class="rate-modal-shell">
+        <div class="rate-modal-icon" aria-hidden="true">
+          ⭐
+        </div>
+
+        <h2 class="rate-modal-title">
+          Enjoying Pickleball Team Flow?
+        </h2>
+
+        <p class="rate-modal-body">
+          If the app is helping your sessions run smoothly, we'd love a
+          quick review on the store — it really helps!
+        </p>
+
+        <ion-button
+          expand="block"
+          class="rate-modal-btn-primary"
+          @click="handleRateNow"
+        >
+          Rate the App
+        </ion-button>
+
+        <ion-button
+          expand="block"
+          fill="clear"
+          class="rate-modal-btn-later"
+          @click="handleRateLater"
+        >
+          Maybe Later
+        </ion-button>
+
+        <ion-button
+          expand="block"
+          fill="clear"
+          class="rate-modal-btn-decline"
+          @click="handleRateDecline"
+        >
+          No Thanks
+        </ion-button>
+      </div>
+    </ion-modal>
+
+    <!-- =========================================================
          TOAST
     ========================================================== -->
     <ion-toast
@@ -1048,6 +1099,7 @@ import {
 
 import { createWorker } from 'tesseract.js';
 import courtLayoutIcon from '../assets/court-layout.svg';
+import { openRateApp, recordGameCompleted, markRated, markDeclined } from '../services/rateApp.js';
 
 export default {
   name: 'Home',
@@ -1122,6 +1174,10 @@ export default {
       },
 
       settingsModal: {
+        show: false
+      },
+
+      rateModal: {
         show: false
       },
 
@@ -1342,6 +1398,26 @@ export default {
 
     closeSettingsModal() {
       this.settingsModal.show = false;
+    },
+
+    closeRateModal() {
+      this.rateModal.show = false;
+    },
+
+    handleRateNow() {
+      markRated();
+      this.closeRateModal();
+      openRateApp();
+    },
+
+    handleRateLater() {
+      // Counter stays intact; prompt fires again at the next milestone.
+      this.closeRateModal();
+    },
+
+    handleRateDecline() {
+      markDeclined();
+      this.closeRateModal();
     },
 
     scrollToTop() {
@@ -1984,6 +2060,13 @@ export default {
       this.expandedRounds[
         round.index
       ] = false;
+
+      // Prompt to rate after a full game (all rounds done).
+      if (this.schedule.every(r => r.closed)) {
+        if (recordGameCompleted()) {
+          this.$nextTick(() => { this.rateModal.show = true; });
+        }
+      }
     },
 
     markRoundOpen(round) {
@@ -4726,5 +4809,75 @@ input:focus-visible {
   border-radius: 0;
   background: #e1e8e3;
   font-size: 0;
+}
+
+/* ============================================================
+   RATE APP MODAL
+   ============================================================ */
+.rate-modal {
+  --width: min(360px, 92vw);
+  --height: auto;
+  --border-radius: 1.25rem;
+  --box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+}
+
+.rate-modal::part(content) {
+  border-radius: 1.25rem;
+  overflow: hidden;
+}
+
+.rate-modal-shell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 1.5rem 1.5rem;
+  text-align: center;
+  background: #ffffff;
+}
+
+.rate-modal-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.75rem;
+  line-height: 1;
+}
+
+.rate-modal-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #1f2d23;
+  margin: 0 0 0.6rem;
+  line-height: 1.25;
+}
+
+.rate-modal-body {
+  font-size: 0.9rem;
+  color: #6c757d;
+  line-height: 1.5;
+  margin: 0 0 1.25rem;
+}
+
+.rate-modal-btn-primary {
+  --background: #0e4b2e;
+  --background-activated: #083320;
+  --border-radius: 0.75rem;
+  --color: #ffffff;
+
+  width: 100%;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.rate-modal-btn-later {
+  --color: #495057;
+  width: 100%;
+  font-weight: 600;
+  margin: 0;
+}
+
+.rate-modal-btn-decline {
+  --color: #adb5bd;
+  width: 100%;
+  font-size: 0.85rem;
+  margin: 0;
 }
 </style>

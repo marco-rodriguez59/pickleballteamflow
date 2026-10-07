@@ -76,6 +76,35 @@
 
       <ion-card class="settings-card">
         <ion-card-content class="settings-card-content">
+          <div class="rate-control">
+            <div class="setting-copy">
+              <div class="setting-label">
+                Rate App
+              </div>
+
+              <div class="setting-help">
+                Enjoying the app? Leave a review on the store.
+              </div>
+            </div>
+
+            <ion-button
+              fill="solid"
+              class="rate-button"
+              aria-label="Rate Pickleball Team Flow"
+              @click="rateApp"
+            >
+              <ion-icon
+                slot="start"
+                :icon="starOutline"
+              />
+              Rate
+            </ion-button>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-card class="settings-card">
+        <ion-card-content class="settings-card-content">
           <div class="setting-row">
             <div class="setting-copy">
               <div class="setting-label">
@@ -136,10 +165,12 @@ import {
 import {
   gridOutline,
   listOutline,
-  shareOutline
+  shareOutline,
+  starOutline
 } from 'ionicons/icons';
 
 import { Share } from '@capacitor/share';
+import { openRateApp } from '../services/rateApp.js';
 
 import {
   setCourtView,
@@ -170,7 +201,8 @@ export default {
     return {
       gridOutline,
       listOutline,
-      shareOutline
+      shareOutline,
+      starOutline
     };
   },
 
@@ -204,6 +236,10 @@ export default {
   },
 
   methods: {
+    rateApp() {
+      openRateApp();
+    },
+
     async shareApp() {
       this.shareInProgress = true;
 
@@ -345,6 +381,26 @@ export default {
   --handle-background-checked: #0e4b2e;
 
   flex-shrink: 0;
+}
+
+.rate-control {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 1rem;
+}
+
+.rate-button {
+  --background: #198754;
+  --background-activated: #146c43;
+  --border-radius: 0.65rem;
+  --color: #ffffff;
+
+  font-weight: 700;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+  height: 40px;
 }
 
 .share-textarea {
