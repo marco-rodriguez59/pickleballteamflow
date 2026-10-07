@@ -12,10 +12,11 @@
     "ios": "npx cap open ios",
     "sync": "npm run build && npx cap sync",
     "build:android": "npm run build && node scripts/make-native-index.mjs && npx cap sync android",
-    "build:ios":     "npm run build && node scripts/make-native-index.mjs && npx cap sync ios"
+    "build:ios": "npm run build && node scripts/make-native-index.mjs && npx cap sync ios"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",
+    "@capacitor/share": "^8.0.3",
     "@capawesome/capacitor-app-update": "8.0.5",
     "@ionic/vue": "^8.0.0",
     "@ionic/vue-router": "^8.0.0",

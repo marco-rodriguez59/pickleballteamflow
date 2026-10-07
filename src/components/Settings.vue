@@ -73,25 +73,73 @@
           </div>
         </ion-card-content>
       </ion-card>
+
+      <ion-card class="settings-card">
+        <ion-card-content class="settings-card-content">
+          <div class="setting-row">
+            <div class="setting-copy">
+              <div class="setting-label">
+                Share App
+              </div>
+
+              <div class="setting-help">
+                Invite friends to try Pickleball Team Flow.
+              </div>
+            </div>
+
+            <ion-icon
+              :icon="shareOutline"
+              aria-hidden="true"
+              class="setting-row-icon"
+            />
+          </div>
+
+          <ion-textarea
+            v-model="shareMessage"
+            :rows="4"
+            class="share-textarea"
+            aria-label="Customize your share message"
+            placeholder="Write a message to share with friends..."
+          />
+
+          <ion-button
+            expand="block"
+            class="share-button"
+            :disabled="shareInProgress"
+            @click="shareApp"
+          >
+            <ion-icon
+              slot="start"
+              :icon="shareOutline"
+            />
+            Share Pickleball Team Flow
+          </ion-button>
+        </ion-card-content>
+      </ion-card>
     </section>
   </div>
 </template>
 
 <script>
 import {
+  IonButton,
   IonCard,
   IonCardContent,
   IonIcon,
   IonLabel,
   IonSegment,
   IonSegmentButton,
+  IonTextarea,
   IonToggle
 } from '@ionic/vue';
 
 import {
   gridOutline,
-  listOutline
+  listOutline,
+  shareOutline
 } from 'ionicons/icons';
+
+import { Share } from '@capacitor/share';
 
 import {
   setCourtView,
@@ -99,23 +147,37 @@ import {
   settings
 } from '../settingsStore.js';
 
+const DEFAULT_SHARE_MESSAGE =
+  'I\'ve been using Pickleball Team Flow to organize fair court assignments and rotations. ' +
+  'Check it out at https://pickleballteamflow.app';
+
 export default {
   name: 'Settings',
 
   components: {
+    IonButton,
     IonCard,
     IonCardContent,
     IonIcon,
     IonLabel,
     IonSegment,
     IonSegmentButton,
+    IonTextarea,
     IonToggle
   },
 
   setup() {
     return {
       gridOutline,
-      listOutline
+      listOutline,
+      shareOutline
+    };
+  },
+
+  data() {
+    return {
+      shareMessage: DEFAULT_SHARE_MESSAGE,
+      shareInProgress: false
     };
   },
 
@@ -137,6 +199,25 @@ export default {
 
       set(value) {
         setShowNumbers(value);
+      }
+    }
+  },
+
+  methods: {
+    async shareApp() {
+      this.shareInProgress = true;
+
+      try {
+        await Share.share({
+          title: 'Pickleball Team Flow',
+          text: this.shareMessage.trim() || DEFAULT_SHARE_MESSAGE,
+          url: 'https://pickleballteamflow.app',
+          dialogTitle: 'Share Pickleball Team Flow'
+        });
+      } catch {
+        // User cancelled or share sheet unavailable — no action needed
+      } finally {
+        this.shareInProgress = false;
       }
     }
   }
@@ -264,5 +345,31 @@ export default {
   --handle-background-checked: #0e4b2e;
 
   flex-shrink: 0;
+}
+
+.share-textarea {
+  --background: #f4f7f4;
+  --border-radius: 0.6rem;
+  --padding-start: 0.75rem;
+  --padding-end: 0.75rem;
+  --padding-top: 0.6rem;
+  --padding-bottom: 0.6rem;
+  --color: #1f2d23;
+
+  font-size: 0.9rem;
+  line-height: 1.45;
+  width: 100%;
+  margin-bottom: 0.9rem;
+}
+
+.share-button {
+  --background: #0e4b2e;
+  --background-activated: #083320;
+  --border-radius: 0.75rem;
+  --color: #ffffff;
+
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin: 0;
 }
 </style>
